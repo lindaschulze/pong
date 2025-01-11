@@ -3,11 +3,7 @@ const playerPaddle = document.getElementById("player-paddle");
 const opponentPaddle = document.getElementById("opponent-paddle");
 const ball = document.getElementById("ball");
 const gameContainer = document.getElementById("game-container");
-
-// Create a scoreboard
-const scoreboard = document.createElement("div");
-scoreboard.id = "scoreboard";
-gameContainer.appendChild(scoreboard);
+const scoreboard = document.getElementById("scoreboard");
 
 // Game variables
 let ballSpeedX = 4;
@@ -21,9 +17,6 @@ let ballY = gameContainer.clientHeight / 2;
 // Paddle positions
 let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
 let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
-
-// Touch-related variables
-let touchStartY = 0;
 
 // Scoring
 let playerScore = 0;
@@ -120,20 +113,6 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
-// Handle touch start
-document.addEventListener("touchstart", (event) => {
-  touchStartY = event.touches[0].clientY;
-});
-
-// Handle touch move
-document.addEventListener("touchmove", (event) => {
-  const touchY = event.touches[0].clientY;
-  const deltaY = touchY - touchStartY;
-  playerPaddleY += deltaY;
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  touchStartY = touchY; // Update for smooth movement
-});
-
-// Start game
+// Initialize scoreboard and game
 updateScore();
 updateGame();
