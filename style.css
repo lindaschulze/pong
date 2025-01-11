@@ -1,24 +1,33 @@
-/* General styles */
+/* General Styling */
 body {
   margin: 0;
   padding: 0;
-  background-color: #eaeaea;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: #eaeaea;
   font-family: Arial, sans-serif;
 }
 
-/* Game container */
+/* Scoreboard */
+#scoreboard {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #333;
+}
+
+/* Game container (playing field) */
 #game-container {
   width: 90vw;
-  height: 45vw; /* 2:1 ratio for a realistic ping pong table */
+  max-width: 800px; /* Limits size on large screens */
+  aspect-ratio: 2 / 1; /* Keeps realistic ping pong proportions */
+  background-color: #006400; /* Dark green table */
+  border: 4px solid white;
   position: relative;
-  background-color: #004d00; /* Dark green for the table */
-  border: 4px solid white; /* White border for the table edges */
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  margin: 5vh auto;
   overflow: hidden;
   border-radius: 5px;
 }
@@ -34,40 +43,42 @@ body {
   z-index: 1;
 }
 
-/* Ball */
-#ball {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-  z-index: 2;
-}
-
 /* Paddles */
 #player-paddle, #opponent-paddle {
   position: absolute;
   width: 10px;
-  height: 100px;
-  background-color: #fff;
+  height: 80px;
+  background-color: white;
   z-index: 2;
 }
 
 #player-paddle {
-  left: 30px; /* Adds space to the left */
+  left: 20px; /* Extra space on the left */
 }
 
 #opponent-paddle {
-  right: 30px; /* Adds space to the right */
+  right: 20px; /* Extra space on the right */
 }
 
-/* Scoreboard */
-#scoreboard {
+/* Ball */
+#ball {
   position: absolute;
-  top: -40px; /* Moves the scoreboard above the table */
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 18px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 3;
+}
+
+/* Winner message */
+#winner-message {
+  font-size: 24px;
   font-weight: bold;
   color: #333;
+  margin-top: 20px;
+  display: none;
+}
+
+#winner-message.hidden {
+  display: none;
 }
