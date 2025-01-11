@@ -7,7 +7,6 @@ const gameContainer = document.getElementById("game-container");
 // Game variables
 let ballSpeedX = 4;
 let ballSpeedY = 4;
-let playerSpeed = 0;
 let opponentSpeed = 4;
 
 // Ball position
@@ -20,13 +19,11 @@ let playerPaddleY = 250;
 // Opponent paddle position
 let opponentPaddleY = 250;
 
+// Touch-related variables
+let touchStartY = 0;
+
 // Update game frame
 function updateGame() {
-  // Move player paddle
-  playerPaddleY += playerSpeed;
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  playerPaddle.style.top = playerPaddleY + "px";
-
   // Move opponent paddle (simple AI)
   if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
     opponentPaddleY += opponentSpeed;
@@ -74,23 +71,25 @@ function updateGame() {
   ball.style.left = ballX + "px";
   ball.style.top = ballY + "px";
 
+  // Update player paddle position
+  playerPaddle.style.top = playerPaddleY + "px";
+
   // Request next frame
   requestAnimationFrame(updateGame);
 }
 
-// Handle key presses for player paddle
-document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowUp") {
-    playerSpeed = -6;
-  } else if (event.key === "ArrowDown") {
-    playerSpeed = 6;
-  }
+// Handle touch start
+document.addEventListener("touchstart", (event) => {
+  touchStartY = event.touches[0].clientY;
 });
 
-document.addEventListener("keyup", (event) => {
-  if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-    playerSpeed = 0;
-  }
+// Handle touch move
+document.addEventListener("touchmove", (event) => {
+  const touchY = event.touches[0].clientY;
+  const deltaY = touchY - touchStartY;
+  playerPaddleY += deltaY;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  touchStartY = touchY; // Update for smooth movement
 });
 
 // Start the game
