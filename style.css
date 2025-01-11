@@ -1,38 +1,15 @@
 /* Game container styling */
 #game-container {
-  width: 90vw; /* 90% of the viewport width */
-  height: 60vh; /* 60% of the viewport height */
+  width: 90vw;
+  height: 60vh;
   position: relative;
   background-color: #5c903f; /* Dark green color */
-  margin: 2vh auto; /* Space from top and bottom */
-  border-radius: 10px; /* Rounded corners */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Shadow around the table */
+  margin: 5vh auto;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
 /* Ball styling */
 #ball {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: white;
-  border-radius: 50%;
-}
-
-/* Player paddle styling */
-#player-paddle, #opponent-paddle {
-  position: absolute;
-  width: 10px;
-  height: 100px;
-  background-color: #fff;
-}
-
-/* Scoreboard styling */
-#scoreboard {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff;
-}
