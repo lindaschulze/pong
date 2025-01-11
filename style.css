@@ -23,4 +23,46 @@ body {
 }
 
 /* Center line */
-#game-container::
+#game-container::before {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  background-color: #fff; /* Center line color */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Paddle styles */
+.paddle {
+  position: absolute;
+  width: 10px;
+  height: 100px;
+  background-color: #fff;
+  border-radius: 4px; /* Rounded paddle edges */
+}
+
+/* Player paddle */
+#player-paddle {
+  left: 20px;
+  top: 250px;
+}
+
+/* Opponent paddle */
+#opponent-paddle {
+  right: 20px;
+  top: 250px;
+}
+
+/* Ball styles */
+#ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 290px;
+  left: 390px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Glow effect for ball */
+}
