@@ -10,17 +10,6 @@
   overflow: hidden;
 }
 
-/* Display the round on the top */
-#round-display {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 24px;
-  font-weight: bold;
-  color: #fff;
-}
-
 /* Ball styling */
 #ball {
   position: absolute;
