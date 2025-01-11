@@ -6,8 +6,8 @@ const gameContainer = document.getElementById("game-container");
 const scoreboard = document.getElementById("scoreboard");
 
 // Game variables
-let ballSpeedX = 2;
-let ballSpeedY = 2;
+let ballSpeedX = 4;
+let ballSpeedY = 4;
 let opponentSpeed = 4;
 
 // Ball position
@@ -21,6 +21,7 @@ let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeig
 // Scoring
 let playerScore = 0;
 let opponentScore = 0;
+const maxScore = 5; // End game at this score
 
 // Update scoreboard
 function updateScore() {
@@ -31,15 +32,21 @@ function updateScore() {
 function resetBall() {
   ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
   ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-  ballSpeedX = 2;
-  ballSpeedY = 2;
-  ballSpeedX *= (Math.random() < 0.5 ? 1 : -1);
-  ballSpeedY *= (Math.random() < 0.5 ? 1 : -1);
+  ballSpeedX *= -1; // Reverse direction
+}
+
+// End game
+function endGame(winner) {
+  alert(`${winner} wins!`);
+  playerScore = 0;
+  opponentScore = 0;
+  resetBall();
+  updateScore();
 }
 
 // Update game frame
 function updateGame() {
-  // Move opponent paddle
+  // Move opponent paddle (simple AI)
   if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
     opponentPaddleY += opponentSpeed;
   } else {
@@ -78,10 +85,18 @@ function updateGame() {
   // Ball out of bounds (scoring)
   if (ballX <= 0) {
     opponentScore++;
-    resetBall();
+    if (opponentScore === maxScore) {
+      endGame("Opponent");
+    } else {
+      resetBall();
+    }
   } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
     playerScore++;
-    resetBall();
+    if (playerScore === maxScore) {
+      endGame("Player");
+    } else {
+      resetBall();
+    }
   }
 
   // Update ball position
@@ -98,24 +113,44 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
-// Add touch events
+// Add touch events for mobile swipe control
 let touchStartY = 0;
 let touchMoveY = 0;
 
+// Handle touch start (on mobile devices)
 gameContainer.addEventListener("touchstart", (e) => {
   touchStartY = e.touches[0].clientY;
-  e.preventDefault();
+  e.preventDefault(); // Prevent page scrolling
 });
 
+// Handle touch move (on mobile devices)
 gameContainer.addEventListener("touchmove", (e) => {
   touchMoveY = e.touches[0].clientY;
+  // Update the paddle Y position based on touch movement
   playerPaddleY += touchMoveY - touchStartY;
-  touchStartY = touchMoveY;
+  touchStartY = touchMoveY; // Update touchStartY for smooth movement
+
+  // Prevent the paddle from going out of bounds
   playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+
+  // Update paddle position
   playerPaddle.style.top = playerPaddleY + "px";
-  e.preventDefault();
+
+  e.preventDefault(); // Prevent page scrolling
 });
 
-// Initialize game
+// Handle mouse movements (for desktop control)
+gameContainer.addEventListener("mousemove", (e) => {
+  const mouseY = e.clientY;
+  playerPaddleY = mouseY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
+  
+  // Prevent the paddle from going out of bounds
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  
+  // Update paddle position
+  playerPaddle.style.top = playerPaddleY + "px";
+});
+
+// Initialize scoreboard and game
 updateScore();
 updateGame();
