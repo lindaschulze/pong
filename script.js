@@ -113,6 +113,45 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
+// Add touch events for mobile swipe control
+let touchStartY = 0;
+let touchEndY = 0;
+
+// Handle touch start (on mobile devices)
+gameContainer.addEventListener("touchstart", (e) => {
+  touchStartY = e.touches[0].clientY;
+});
+
+// Handle touch end (on mobile devices)
+gameContainer.addEventListener("touchend", (e) => {
+  touchEndY = e.changedTouches[0].clientY;
+  
+  // Detect swipe direction
+  if (touchStartY > touchEndY + 50) {
+    playerPaddleY -= 50; // Swipe up
+  } else if (touchStartY < touchEndY - 50) {
+    playerPaddleY += 50; // Swipe down
+  }
+  
+  // Prevent the paddle from going out of bounds
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+
+  // Update paddle position
+  playerPaddle.style.top = playerPaddleY + "px";
+});
+
+// Handle mouse movements (for desktop control)
+gameContainer.addEventListener("mousemove", (e) => {
+  const mouseY = e.clientY;
+  playerPaddleY = mouseY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
+  
+  // Prevent the paddle from going out of bounds
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  
+  // Update paddle position
+  playerPaddle.style.top = playerPaddleY + "px";
+});
+
 // Initialize scoreboard and game
 updateScore();
 updateGame();
