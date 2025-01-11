@@ -8,15 +8,18 @@ body {
   align-items: center;
   height: 100vh;
   font-family: Arial, sans-serif;
+  color: #fff;
 }
 
 /* Game container styles */
 #game-container {
   position: relative;
-  width: 800px;
-  height: 600px;
-  background-color: #006400; /* Ping pong table green */
-  border: 10px solid #fff; /* Table border */
+  width: 90vw; /* Responsive width */
+  height: 60vh; /* Responsive height */
+  max-width: 800px;
+  max-height: 600px;
+  background-color: #4CAF50; /* Light green color */
+  border: 8px solid #fff; /* Table border */
   border-radius: 8px; /* Slightly rounded corners */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Add shadow for depth */
   overflow: hidden;
@@ -37,32 +40,41 @@ body {
 /* Paddle styles */
 .paddle {
   position: absolute;
-  width: 10px;
-  height: 100px;
+  width: 1.5%; /* Responsive paddle width */
+  height: 15%; /* Responsive paddle height */
   background-color: #fff;
-  border-radius: 4px; /* Rounded paddle edges */
+  border-radius: 4px;
 }
 
 /* Player paddle */
 #player-paddle {
-  left: 20px;
-  top: 250px;
+  left: 2%; /* Distance from left edge */
+  top: 40%;
 }
 
 /* Opponent paddle */
 #opponent-paddle {
-  right: 20px;
-  top: 250px;
+  right: 2%; /* Distance from right edge */
+  top: 40%;
 }
 
 /* Ball styles */
 #ball {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 2.5%; /* Responsive ball size */
+  aspect-ratio: 1/1; /* Ensures ball is perfectly round */
   background-color: #fff;
   border-radius: 50%;
-  top: 290px;
-  left: 390px;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Glow effect for ball */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Score styles */
+#scoreboard {
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  font-weight: bold;
 }
