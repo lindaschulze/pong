@@ -4,11 +4,13 @@ const opponentPaddle = document.getElementById("opponent-paddle");
 const ball = document.getElementById("ball");
 const gameContainer = document.getElementById("game-container");
 const scoreboard = document.getElementById("scoreboard");
+const roundDisplay = document.getElementById("round-display");
 
 // Game variables
-let ballSpeedX = 4;
-let ballSpeedY = 4;
+let ballSpeedX = 2;
+let ballSpeedY = 2;
 let opponentSpeed = 4;
+let round = 1;
 
 // Ball position
 let ballX = gameContainer.clientWidth / 2;
@@ -22,26 +24,43 @@ let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeig
 let playerScore = 0;
 let opponentScore = 0;
 const maxScore = 5; // End game at this score
+const maxRounds = 5; // Total rounds
 
 // Update scoreboard
 function updateScore() {
   scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
 }
 
+// Display the current round
+function updateRoundDisplay() {
+  roundDisplay.textContent = `Round: ${round} / ${maxRounds}`;
+}
+
 // Reset ball position
 function resetBall() {
   ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
   ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-  ballSpeedX *= -1; // Reverse direction
+  ballSpeedX = 2 + round * 0.5; // Increase speed with each round
+  ballSpeedY = 2 + round * 0.5; // Increase speed with each round
+  ballSpeedX *= (Math.random() < 0.5 ? 1 : -1); // Randomize direction
+  ballSpeedY *= (Math.random() < 0.5 ? 1 : -1); // Randomize direction
 }
 
 // End game
 function endGame(winner) {
-  alert(`${winner} wins!`);
+  alert(`${winner} wins the game!`);
+  resetGame();
+}
+
+// Reset game and display winner
+function resetGame() {
   playerScore = 0;
   opponentScore = 0;
-  resetBall();
+  round = 1;
   updateScore();
+  updateRoundDisplay();
+  resetBall();
+  updateGame();
 }
 
 // Update game frame
@@ -86,14 +105,24 @@ function updateGame() {
   if (ballX <= 0) {
     opponentScore++;
     if (opponentScore === maxScore) {
-      endGame("Opponent");
+      if (round === maxRounds) {
+        endGame("Opponent");
+      } else {
+        round++;
+        resetBall();
+      }
     } else {
       resetBall();
     }
   } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
     playerScore++;
     if (playerScore === maxScore) {
-      endGame("Player");
+      if (round === maxRounds) {
+        endGame("Player");
+      } else {
+        round++;
+        resetBall();
+      }
     } else {
       resetBall();
     }
@@ -106,8 +135,9 @@ function updateGame() {
   // Update player paddle position
   playerPaddle.style.top = playerPaddleY + "px";
 
-  // Update scoreboard
+  // Update scoreboard and round display
   updateScore();
+  updateRoundDisplay();
 
   // Request next frame
   requestAnimationFrame(updateGame);
@@ -153,4 +183,5 @@ gameContainer.addEventListener("mousemove", (e) => {
 
 // Initialize scoreboard and game
 updateScore();
+updateRoundDisplay();
 updateGame();
