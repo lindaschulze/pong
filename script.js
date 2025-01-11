@@ -1,156 +1,88 @@
-// Get game elements
 const playerPaddle = document.getElementById("player-paddle");
 const opponentPaddle = document.getElementById("opponent-paddle");
 const ball = document.getElementById("ball");
+const roundNumberDisplay = document.getElementById("round-number");
+const playerScoreDisplay = document.getElementById("player-score");
+const opponentScoreDisplay = document.getElementById("opponent-score");
+const winnerMessage = document.getElementById("winner-message");
+
 const gameContainer = document.getElementById("game-container");
-const scoreboard = document.getElementById("scoreboard");
 
-// Game variables
-let ballSpeedX = 4;
-let ballSpeedY = 4;
-let opponentSpeed = 4;
-
-// Ball position
-let ballX = gameContainer.clientWidth / 2;
-let ballY = gameContainer.clientHeight / 2;
-
-// Paddle positions
-let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
-let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
-
-// Scoring
 let playerScore = 0;
 let opponentScore = 0;
-const maxScore = 5; // End game at this score
+let roundNumber = 1;
 
-// Update scoreboard
-function updateScore() {
-  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
-}
+let ballX, ballY, ballSpeedX, ballSpeedY, playerPaddleY, opponentPaddleY;
 
-// Reset ball position
+const paddleSpeed = 10;
+const initialBallSpeed = 2;
+
 function resetBall() {
-  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
-  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-  ballSpeedX *= -1; // Reverse direction
+  ballX = gameContainer.offsetWidth / 2 - ball.offsetWidth / 2;
+  ballY = gameContainer.offsetHeight / 2 - ball.offsetHeight / 2;
+  ballSpeedX = initialBallSpeed + roundNumber - 1;
+  ballSpeedY = initialBallSpeed + roundNumber - 1;
 }
 
-// End game
-function endGame(winner) {
-  alert(`${winner} wins!`);
-  playerScore = 0;
-  opponentScore = 0;
-  resetBall();
-  updateScore();
-}
-
-// Update game frame
 function updateGame() {
-  // Move opponent paddle (simple AI)
-  if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
-    opponentPaddleY += opponentSpeed;
-  } else {
-    opponentPaddleY -= opponentSpeed;
-  }
-  opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
-  opponentPaddle.style.top = opponentPaddleY + "px";
-
-  // Move ball
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
-  // Ball collision with top and bottom walls
-  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) {
+  if (ballY <= 0 || ballY >= gameContainer.offsetHeight - ball.offsetHeight) {
     ballSpeedY *= -1;
   }
 
-  // Ball collision with player paddle
   if (
-    ballX <= playerPaddle.offsetLeft + playerPaddle.clientWidth &&
-    ballY + ball.clientHeight >= playerPaddleY &&
-    ballY <= playerPaddleY + playerPaddle.clientHeight
+    ballX <= playerPaddle.offsetLeft + playerPaddle.offsetWidth &&
+    ballY + ball.offsetHeight >= playerPaddleY &&
+    ballY <= playerPaddleY + playerPaddle.offsetHeight
   ) {
     ballSpeedX *= -1;
   }
 
-  // Ball collision with opponent paddle
   if (
-    ballX + ball.clientWidth >= opponentPaddle.offsetLeft &&
-    ballY + ball.clientHeight >= opponentPaddleY &&
-    ballY <= opponentPaddleY + opponentPaddle.clientHeight
+    ballX + ball.offsetWidth >= opponentPaddle.offsetLeft &&
+    ballY + ball.offsetHeight >= opponentPaddleY &&
+    ballY <= opponentPaddleY + opponentPaddle.offsetHeight
   ) {
     ballSpeedX *= -1;
   }
 
-  // Ball out of bounds (scoring)
   if (ballX <= 0) {
     opponentScore++;
-    if (opponentScore === maxScore) {
-      endGame("Opponent");
-    } else {
-      resetBall();
-    }
-  } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
-    playerScore++;
-    if (playerScore === maxScore) {
-      endGame("Player");
-    } else {
-      resetBall();
-    }
+    updateScore();
+    resetBall();
   }
 
-  // Update ball position
+  if (ballX >= gameContainer.offsetWidth) {
+    playerScore++;
+    updateScore();
+    resetBall();
+  }
+
+  playerPaddle.style.top = playerPaddleY + "px";
+  opponentPaddle.style.top = opponentPaddleY + "px";
   ball.style.left = ballX + "px";
   ball.style.top = ballY + "px";
 
-  // Update player paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
+  if (roundNumber > 5) return; // Stop game after 5 rounds
 
-  // Update scoreboard
-  updateScore();
-
-  // Request next frame
   requestAnimationFrame(updateGame);
 }
 
-// Add touch events for mobile swipe control
-let touchStartY = 0;
-let touchMoveY = 0;
+function updateScore() {
+  playerScoreDisplay.textContent = playerScore;
+  opponentScoreDisplay.textContent = opponentScore;
 
-// Handle touch start (on mobile devices)
-gameContainer.addEventListener("touchstart", (e) => {
-  touchStartY = e.touches[0].clientY;
-  e.preventDefault(); // Prevent page scrolling
-});
+  if (playerScore === 5 || opponentScore === 5) {
+    roundNumber++;
+    if (roundNumber > 5) {
+      announceWinner();
+    }
+    resetBall();
+  }
+}
 
-// Handle touch move (on mobile devices)
-gameContainer.addEventListener("touchmove", (e) => {
-  touchMoveY = e.touches[0].clientY;
-  // Update the paddle Y position based on touch movement
-  playerPaddleY += touchMoveY - touchStartY;
-  touchStartY = touchMoveY; // Update touchStartY for smooth movement
-
-  // Prevent the paddle from going out of bounds
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-
-  // Update paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-
-  e.preventDefault(); // Prevent page scrolling
-});
-
-// Handle mouse movements (for desktop control)
-gameContainer.addEventListener("mousemove", (e) => {
-  const mouseY = e.clientY;
-  playerPaddleY = mouseY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
-  
-  // Prevent the paddle from going out of bounds
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  
-  // Update paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-});
-
-// Initialize scoreboard and game
-updateScore();
-updateGame();
+function announceWinner() {
+  winnerMessage.textContent =
+    playerScore > opponentScore ? "Player Wins!" : "Opponent
