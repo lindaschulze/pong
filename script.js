@@ -115,24 +115,20 @@ function updateGame() {
 
 // Add touch events for mobile swipe control
 let touchStartY = 0;
-let touchEndY = 0;
+let touchMoveY = 0;
 
 // Handle touch start (on mobile devices)
 gameContainer.addEventListener("touchstart", (e) => {
   touchStartY = e.touches[0].clientY;
 });
 
-// Handle touch end (on mobile devices)
-gameContainer.addEventListener("touchend", (e) => {
-  touchEndY = e.changedTouches[0].clientY;
-  
-  // Detect swipe direction
-  if (touchStartY > touchEndY + 50) {
-    playerPaddleY -= 50; // Swipe up
-  } else if (touchStartY < touchEndY - 50) {
-    playerPaddleY += 50; // Swipe down
-  }
-  
+// Handle touch move (on mobile devices)
+gameContainer.addEventListener("touchmove", (e) => {
+  touchMoveY = e.touches[0].clientY;
+  // Update the paddle Y position based on touch movement
+  playerPaddleY += touchMoveY - touchStartY;
+  touchStartY = touchMoveY; // Update touchStartY for smooth movement
+
   // Prevent the paddle from going out of bounds
   playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
 
