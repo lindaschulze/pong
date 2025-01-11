@@ -33,13 +33,13 @@ function resetBall() {
   ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
   ballSpeedX = 2;
   ballSpeedY = 2;
-  ballSpeedX *= (Math.random() < 0.5 ? 1 : -1); // Randomize direction
-  ballSpeedY *= (Math.random() < 0.5 ? 1 : -1); // Randomize direction
+  ballSpeedX *= (Math.random() < 0.5 ? 1 : -1);
+  ballSpeedY *= (Math.random() < 0.5 ? 1 : -1);
 }
 
 // Update game frame
 function updateGame() {
-  // Move opponent paddle (simple AI)
+  // Move opponent paddle
   if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
     opponentPaddleY += opponentSpeed;
   } else {
@@ -98,44 +98,24 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
-// Add touch events for mobile swipe control
+// Add touch events
 let touchStartY = 0;
 let touchMoveY = 0;
 
-// Handle touch start (on mobile devices)
 gameContainer.addEventListener("touchstart", (e) => {
   touchStartY = e.touches[0].clientY;
-  e.preventDefault(); // Prevent page scrolling
+  e.preventDefault();
 });
 
-// Handle touch move (on mobile devices)
 gameContainer.addEventListener("touchmove", (e) => {
   touchMoveY = e.touches[0].clientY;
-  // Update the paddle Y position based on touch movement
   playerPaddleY += touchMoveY - touchStartY;
-  touchStartY = touchMoveY; // Update touchStartY for smooth movement
-
-  // Prevent the paddle from going out of bounds
+  touchStartY = touchMoveY;
   playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-
-  // Update paddle position
   playerPaddle.style.top = playerPaddleY + "px";
-
-  e.preventDefault(); // Prevent page scrolling
+  e.preventDefault();
 });
 
-// Handle mouse movements (for desktop control)
-gameContainer.addEventListener("mousemove", (e) => {
-  const mouseY = e.clientY;
-  playerPaddleY = mouseY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
-  
-  // Prevent the paddle from going out of bounds
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  
-  // Update paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-});
-
-// Initialize scoreboard and game
+// Initialize game
 updateScore();
 updateGame();
