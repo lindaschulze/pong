@@ -1,0 +1,50 @@
+/* General styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+#game-container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  background-color: #222;
+  border: 2px solid #fff;
+  overflow: hidden;
+}
+
+/* Paddle styles */
+.paddle {
+  position: absolute;
+  width: 10px;
+  height: 100px;
+  background-color: #fff;
+}
+
+#player-paddle {
+  left: 20px;
+  top: 250px;
+}
+
+#opponent-paddle {
+  right: 20px;
+  top: 250px;
+}
+
+/* Ball styles */
+#ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 290px;
+  left: 390px;
+}
