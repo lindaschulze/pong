@@ -4,10 +4,20 @@ body {
   padding: 0;
   background-color: #000;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
   font-family: Arial, sans-serif;
+  color: #fff;
+}
+
+/* Scoreboard styles */
+#scoreboard {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px; /* Place the scoreboard outside the game field */
   color: #fff;
 }
 
@@ -15,13 +25,13 @@ body {
 #game-container {
   position: relative;
   width: 90vw; /* Responsive width */
-  height: 60vh; /* Responsive height */
+  aspect-ratio: 1.8; /* Maintain 1.8:1 ratio for a real ping pong table */
   max-width: 800px;
-  max-height: 600px;
-  background-color: #4CAF50; /* Light green color */
+  max-height: 444px; /* Maximum height for a proportionate table */
+  background-color: #4CAF50; /* Light green table color */
   border: 8px solid #fff; /* Table border */
-  border-radius: 8px; /* Slightly rounded corners */
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Add shadow for depth */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -62,19 +72,8 @@ body {
 #ball {
   position: absolute;
   width: 2.5%; /* Responsive ball size */
-  aspect-ratio: 1/1; /* Ensures ball is perfectly round */
+  aspect-ratio: 1/1; /* Ensures the ball is perfectly round */
   background-color: #fff;
   border-radius: 50%;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
-/* Score styles */
-#scoreboard {
-  position: absolute;
-  top: 10px;
-  width: 100%;
-  text-align: center;
-  font-size: 2rem;
-  color: #fff;
-  font-weight: bold;
 }
