@@ -120,6 +120,7 @@ let touchMoveY = 0;
 // Handle touch start (on mobile devices)
 gameContainer.addEventListener("touchstart", (e) => {
   touchStartY = e.touches[0].clientY;
+  e.preventDefault(); // Prevent page scrolling
 });
 
 // Handle touch move (on mobile devices)
@@ -134,6 +135,8 @@ gameContainer.addEventListener("touchmove", (e) => {
 
   // Update paddle position
   playerPaddle.style.top = playerPaddleY + "px";
+
+  e.preventDefault(); // Prevent page scrolling
 });
 
 // Handle mouse movements (for desktop control)
