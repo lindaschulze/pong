@@ -10,7 +10,6 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
   color: #fff; /* White text color */
-  overflow: hidden; /* Prevent scrolling */
 }
 
 /* Scoreboard styles */
@@ -34,8 +33,6 @@ body {
   border-radius: 8px; /* Rounded corners */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Subtle shadow for aesthetics */
   overflow: hidden; /* Prevent content from overflowing */
-  margin: 0 auto; /* Center the table */
-  padding: 10px; /* Add padding around the table */
 }
 
 /* Fallback for older browsers without aspect-ratio support */
@@ -86,16 +83,4 @@ body {
   background-color: #fff; /* White ball */
   border-radius: 50%; /* Makes the ball circular */
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Glow effect */
-}
-
-/* Responsive adjustments for smaller devices */
-@media screen and (max-width: 480px) {
-  #game-container {
-    width: 100vw; /* Utilize full screen width on phones */
-    padding: 5px; /* Reduce padding for small screens */
-  }
-
-  #scoreboard {
-    font-size: 1.5rem; /* Adjust scoreboard font size */
-  }
 }
