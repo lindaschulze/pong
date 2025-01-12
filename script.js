@@ -1,35 +1,60 @@
-// Last frame timestamp
-let lastFrameTime = performance.now(); // Initialize with the current time
+// Get game elements
+const playerPaddle = document.getElementById("player-paddle");
+const opponentPaddle = document.getElementById("opponent-paddle");
+const ball = document.getElementById("ball");
+const gameContainer = document.getElementById("game-container");
+const scoreboard = document.getElementById("scoreboard");
 
-function updateGame(currentTime) {
-  // Calculate the time elapsed since the last frame
-  const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert milliseconds to seconds
-  lastFrameTime = currentTime; // Update the last frame time
-  
-  // Scale the ball and paddle movements by deltaTime
-  const scaledBallSpeedX = ballSpeedX * deltaTime * 60; // Scale for 60 FPS baseline
-  const scaledBallSpeedY = ballSpeedY * deltaTime * 60;
-  const scaledOpponentSpeed = opponentSpeed * deltaTime * 60;
+// Game variables
+let ballSpeedX = 3;
+let ballSpeedY = 3;
+let opponentSpeed = 3;
 
-  // Move opponent paddle (simple AI)
-  if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
-    opponentPaddleY += scaledOpponentSpeed;
-  } else {
-    opponentPaddleY -= scaledOpponentSpeed;
-  }
+// Ball position
+let ballX = gameContainer.clientWidth / 2;
+let ballY = gameContainer.clientHeight / 2;
+
+// Paddle positions
+let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
+let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
+
+// Scoring
+let playerScore = 0;
+let opponentScore = 0;
+const maxScore = 5;
+
+// Update scoreboard
+function updateScore() {
+  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
+}
+
+// Reset ball position
+function resetBall() {
+  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+  ballSpeedX *= -1;
+}
+
+// End game
+function endGame(winner) {
+  alert(`${winner} wins!`);
+  playerScore = 0;
+  opponentScore = 0;
+  resetBall();
+  updateScore();
+}
+
+// Update game frame
+function updateGame() {
+  opponentPaddleY += opponentSpeed * (ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1);
   opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
-  opponentPaddle.style.top = opponentPaddleY + "px";
+  opponentPaddle.style.top = `${opponentPaddleY}px`;
 
-  // Move ball
-  ballX += scaledBallSpeedX;
-  ballY += scaledBallSpeedY;
+  ballX += ballSpeedX;
+  ballY += ballSpeedY;
 
-  // Ball collision with top and bottom walls
-  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) {
-    ballSpeedY *= -1;
-  }
+  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) ballSpeedY *= -1;
 
-  // Ball collision with player paddle
   if (
     ballX <= playerPaddle.offsetLeft + playerPaddle.clientWidth &&
     ballY + ball.clientHeight >= playerPaddleY &&
@@ -38,7 +63,6 @@ function updateGame(currentTime) {
     ballSpeedX *= -1;
   }
 
-  // Ball collision with opponent paddle
   if (
     ballX + ball.clientWidth >= opponentPaddle.offsetLeft &&
     ballY + ball.clientHeight >= opponentPaddleY &&
@@ -47,37 +71,38 @@ function updateGame(currentTime) {
     ballSpeedX *= -1;
   }
 
-  // Ball out of bounds (scoring)
   if (ballX <= 0) {
     opponentScore++;
-    if (opponentScore === maxScore) {
-      endGame("Opponent");
-    } else {
-      resetBall();
-    }
+    if (opponentScore === maxScore) endGame("Opponent");
+    else resetBall();
   } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
     playerScore++;
-    if (playerScore === maxScore) {
-      endGame("Player");
-    } else {
-      resetBall();
-    }
+    if (playerScore === maxScore) endGame("Player");
+    else resetBall();
   }
 
-  // Update ball position
-  ball.style.left = ballX + "px";
-  ball.style.top = ballY + "px";
+  ball.style.left = `${ballX}px`;
+  ball.style.top = `${ballY}px`;
 
-  // Update player paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-
-  // Update scoreboard
+  playerPaddle.style.top = `${playerPaddleY}px`;
   updateScore();
-
-  // Request next frame
   requestAnimationFrame(updateGame);
 }
 
-// Initialize scoreboard and game
+// Handle touch/mouse controls
+let touchStartY = 0;
+gameContainer.addEventListener("touchstart", (e) => (touchStartY = e.touches[0].clientY));
+gameContainer.addEventListener("touchmove", (e) => {
+  playerPaddleY += e.touches[0].clientY - touchStartY;
+  touchStartY = e.touches[0].clientY;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  e.preventDefault();
+});
+
+gameContainer.addEventListener("mousemove", (e) => {
+  playerPaddleY = e.clientY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+});
+
 updateScore();
-updateGame(performance.now()); // Pass the initial timestamp
+updateGame();
