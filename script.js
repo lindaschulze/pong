@@ -6,9 +6,9 @@ const gameContainer = document.getElementById("game-container");
 const scoreboard = document.getElementById("scoreboard");
 
 // Game variables
-let ballSpeedX = 2;
-let ballSpeedY = 2;
-let opponentSpeed = 1.5;
+let ballSpeedX = 3;
+let ballSpeedY = 3;
+let opponentSpeed = 3;
 
 // Ball position
 let ballX = gameContainer.clientWidth / 2;
