@@ -1,11 +1,18 @@
+// Get game elements
+const playerPaddle = document.getElementById("player-paddle");
+const opponentPaddle = document.getElementById("opponent-paddle");
+const ball = document.getElementById("ball");
+const gameContainer = document.getElementById("game-container");
+const scoreboard = document.getElementById("scoreboard");
+
 // Game variables
 let ballSpeedX = 3;
 let ballSpeedY = 3;
 let opponentSpeed = 1.5; // Slower opponent speed to make the game more balanced
 
 // Ball position
-let ballX = gameContainer.clientWidth / 2;
-let ballY = gameContainer.clientHeight / 2;
+let ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+let ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
 
 // Paddle positions
 let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
@@ -85,11 +92,16 @@ function updateGame() {
     else resetBall();
   }
 
+  // Update ball and paddle positions on screen
   ball.style.left = `${ballX}px`;
   ball.style.top = `${ballY}px`;
 
   playerPaddle.style.top = `${playerPaddleY}px`;
+
+  // Update the score
   updateScore();
+
+  // Keep the game loop running
   requestAnimationFrame(updateGame);
 }
 
@@ -108,5 +120,6 @@ gameContainer.addEventListener("mousemove", (e) => {
   playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
 });
 
+// Start the game loop
 updateScore();
 updateGame();
