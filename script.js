@@ -105,9 +105,15 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
-// Handle touch/mouse controls
+// Handle touch and mouse controls
 let touchStartY = 0;
-gameContainer.addEventListener("touchstart", (e) => (touchStartY = e.touches[0].clientY));
+
+// Handle touchstart event (for mobile)
+gameContainer.addEventListener("touchstart", (e) => {
+  touchStartY = e.touches[0].clientY;
+});
+
+// Handle touchmove event (for mobile)
 gameContainer.addEventListener("touchmove", (e) => {
   playerPaddleY += e.touches[0].clientY - touchStartY;
   touchStartY = e.touches[0].clientY;
@@ -115,9 +121,12 @@ gameContainer.addEventListener("touchmove", (e) => {
   e.preventDefault();
 });
 
+// Handle mousemove event (for desktop)
 gameContainer.addEventListener("mousemove", (e) => {
-  playerPaddleY = e.clientY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  if (e.clientY !== undefined) {
+    playerPaddleY = e.clientY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
+    playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  }
 });
 
 // Start the game loop
