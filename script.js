@@ -1,21 +1,57 @@
+// Get game elements
+const playerPaddle = document.getElementById("player-paddle");
+const opponentPaddle = document.getElementById("opponent-paddle");
+const ball = document.getElementById("ball");
+const gameContainer = document.getElementById("game-container");
+const scoreboard = document.getElementById("scoreboard");
+
+// Game variables
+let ballSpeedX = 3;
+let ballSpeedY = 3;
+let opponentSpeed = 3;
+
+// Ball position
+let ballX = gameContainer.clientWidth / 2;
+let ballY = gameContainer.clientHeight / 2;
+
+// Paddle positions
+let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
+let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
+
+// Scoring
+let playerScore = 0;
+let opponentScore = 0;
+const maxScore = 5;
+
+// Update scoreboard
+function updateScore() {
+  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
+}
+
+// Reset ball position
+function resetBall() {
+  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+  ballSpeedX *= -1;
+}
+
+// End game
+function endGame(winner) {
+  alert(`${winner} wins!`);
+  playerScore = 0;
+  opponentScore = 0;
+  resetBall();
+  updateScore();
+}
+
 // Update game frame
-function updateGame(timestamp) {
-  if (!lastTimestamp) {
-    lastTimestamp = timestamp;
-    requestAnimationFrame(updateGame);
-    return;
-  }
-
-  const delta = timestamp - lastTimestamp; // Time since last frame in ms
-  lastTimestamp = timestamp;
-
+function updateGame() {
   opponentPaddleY += opponentSpeed * (ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1);
   opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
   opponentPaddle.style.top = `${opponentPaddleY}px`;
 
-  // Update ball position with adjusted speed
-  ballX += ballSpeedX * delta / 10; // Apply factor to adjust speed
-  ballY += ballSpeedY * delta / 10; // Apply factor to adjust speed
+  ballX += ballSpeedX;
+  ballY += ballSpeedY;
 
   if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) ballSpeedY *= -1;
 
@@ -52,3 +88,21 @@ function updateGame(timestamp) {
   updateScore();
   requestAnimationFrame(updateGame);
 }
+
+// Handle touch/mouse controls
+let touchStartY = 0;
+gameContainer.addEventListener("touchstart", (e) => (touchStartY = e.touches[0].clientY));
+gameContainer.addEventListener("touchmove", (e) => {
+  playerPaddleY += e.touches[0].clientY - touchStartY;
+  touchStartY = e.touches[0].clientY;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+  e.preventDefault();
+});
+
+gameContainer.addEventListener("mousemove", (e) => {
+  playerPaddleY = e.clientY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
+});
+
+updateScore();
+updateGame();
