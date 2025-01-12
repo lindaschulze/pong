@@ -6,8 +6,8 @@ const gameContainer = document.getElementById("game-container");
 const scoreboard = document.getElementById("scoreboard");
 
 // Game variables
-let ballSpeedX = 3;
-let ballSpeedY = 3;
+let ballSpeedX = 0.5; // Speed in percentage per ms
+let ballSpeedY = 0.5; // Speed in percentage per ms
 let opponentSpeed = 3;
 
 // Ball position
@@ -44,14 +44,25 @@ function endGame(winner) {
   updateScore();
 }
 
-// Update game frame
-function updateGame() {
+// Timestamp-based game update
+let lastTimestamp = null;
+
+function updateGame(timestamp) {
+  if (!lastTimestamp) {
+    lastTimestamp = timestamp;
+    requestAnimationFrame(updateGame);
+    return;
+  }
+
+  const delta = timestamp - lastTimestamp; // Time since last frame in ms
+  lastTimestamp = timestamp;
+
   opponentPaddleY += opponentSpeed * (ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1);
   opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
   opponentPaddle.style.top = `${opponentPaddleY}px`;
 
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
+  ballX += ballSpeedX * delta * gameContainer.clientWidth / 100; // Normalize to percentage
+  ballY += ballSpeedY * delta * gameContainer.clientHeight / 100; // Normalize to percentage
 
   if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) ballSpeedY *= -1;
 
@@ -105,4 +116,4 @@ gameContainer.addEventListener("mousemove", (e) => {
 });
 
 updateScore();
-updateGame();
+requestAnimationFrame(updateGame);
