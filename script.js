@@ -1,63 +1,28 @@
-// Get game elements
-const playerPaddle = document.getElementById("player-paddle");
-const opponentPaddle = document.getElementById("opponent-paddle");
-const ball = document.getElementById("ball");
-const gameContainer = document.getElementById("game-container");
-const scoreboard = document.getElementById("scoreboard");
+// Last frame timestamp
+let lastFrameTime = performance.now(); // Initialize with the current time
 
-// Game variables
-let ballSpeedX = 4;
-let ballSpeedY = 4;
-let opponentSpeed = 4;
+function updateGame(currentTime) {
+  // Calculate the time elapsed since the last frame
+  const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert milliseconds to seconds
+  lastFrameTime = currentTime; // Update the last frame time
+  
+  // Scale the ball and paddle movements by deltaTime
+  const scaledBallSpeedX = ballSpeedX * deltaTime * 60; // Scale for 60 FPS baseline
+  const scaledBallSpeedY = ballSpeedY * deltaTime * 60;
+  const scaledOpponentSpeed = opponentSpeed * deltaTime * 60;
 
-// Ball position
-let ballX = gameContainer.clientWidth / 2;
-let ballY = gameContainer.clientHeight / 2;
-
-// Paddle positions
-let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
-let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
-
-// Scoring
-let playerScore = 0;
-let opponentScore = 0;
-const maxScore = 5; // End game at this score
-
-// Update scoreboard
-function updateScore() {
-  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
-}
-
-// Reset ball position
-function resetBall() {
-  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
-  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-  ballSpeedX *= -1; // Reverse direction
-}
-
-// End game
-function endGame(winner) {
-  alert(`${winner} wins!`);
-  playerScore = 0;
-  opponentScore = 0;
-  resetBall();
-  updateScore();
-}
-
-// Update game frame
-function updateGame() {
   // Move opponent paddle (simple AI)
   if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
-    opponentPaddleY += opponentSpeed;
+    opponentPaddleY += scaledOpponentSpeed;
   } else {
-    opponentPaddleY -= opponentSpeed;
+    opponentPaddleY -= scaledOpponentSpeed;
   }
   opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
   opponentPaddle.style.top = opponentPaddleY + "px";
 
   // Move ball
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
+  ballX += scaledBallSpeedX;
+  ballY += scaledBallSpeedY;
 
   // Ball collision with top and bottom walls
   if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) {
@@ -113,44 +78,6 @@ function updateGame() {
   requestAnimationFrame(updateGame);
 }
 
-// Add touch events for mobile swipe control
-let touchStartY = 0;
-let touchMoveY = 0;
-
-// Handle touch start (on mobile devices)
-gameContainer.addEventListener("touchstart", (e) => {
-  touchStartY = e.touches[0].clientY;
-  e.preventDefault(); // Prevent page scrolling
-});
-
-// Handle touch move (on mobile devices)
-gameContainer.addEventListener("touchmove", (e) => {
-  touchMoveY = e.touches[0].clientY;
-  // Update the paddle Y position based on touch movement
-  playerPaddleY += touchMoveY - touchStartY;
-  touchStartY = touchMoveY; // Update touchStartY for smooth movement
-
-  // Prevent the paddle from going out of bounds
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-
-  // Update paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-
-  e.preventDefault(); // Prevent page scrolling
-});
-
-// Handle mouse movements (for desktop control)
-gameContainer.addEventListener("mousemove", (e) => {
-  const mouseY = e.clientY;
-  playerPaddleY = mouseY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
-  
-  // Prevent the paddle from going out of bounds
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  
-  // Update paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-});
-
 // Initialize scoreboard and game
 updateScore();
-updateGame();
+updateGame(performance.now()); // Pass the initial timestamp
