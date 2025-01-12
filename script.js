@@ -101,7 +101,7 @@ function updateGame() {
   // Update the score
   updateScore();
 
-  // Keep the game loop running
+  // Ensure the game loop runs by calling requestAnimationFrame
   requestAnimationFrame(updateGame);
 }
 
@@ -123,10 +123,9 @@ gameContainer.addEventListener("touchmove", (e) => {
 
 // Handle mousemove event (for desktop)
 gameContainer.addEventListener("mousemove", (e) => {
-  if (e.clientY !== undefined) {
-    playerPaddleY = e.clientY - gameContainer.offsetTop - playerPaddle.clientHeight / 2;
-    playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  }
+  const containerRect = gameContainer.getBoundingClientRect(); // Get the container's position relative to the viewport
+  playerPaddleY = e.clientY - containerRect.top - playerPaddle.clientHeight / 2;
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
 });
 
 // Start the game loop
