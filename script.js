@@ -1,15 +1,31 @@
-// Last frame timestamp
-let lastFrameTime = performance.now(); // Initialize with the current time
+// Game variables for fixed update
+const fixedUpdateInterval = 1000 / 60; // 60 updates per second
+let lastUpdateTime = performance.now(); // Time of the last update
+let accumulator = 0; // Tracks leftover time for consistent updates
 
 function updateGame(currentTime) {
   // Calculate the time elapsed since the last frame
-  const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert milliseconds to seconds
-  lastFrameTime = currentTime; // Update the last frame time
-  
-  // Scale the ball and paddle movements by deltaTime
-  const scaledBallSpeedX = ballSpeedX * deltaTime * 60; // Scale for 60 FPS baseline
-  const scaledBallSpeedY = ballSpeedY * deltaTime * 60;
-  const scaledOpponentSpeed = opponentSpeed * deltaTime * 60;
+  const elapsedTime = currentTime - lastUpdateTime;
+  lastUpdateTime = currentTime;
+
+  // Accumulate the time elapsed
+  accumulator += elapsedTime;
+
+  // Process game logic in fixed intervals
+  while (accumulator >= fixedUpdateInterval) {
+    gameLogic(fixedUpdateInterval / 1000); // Convert milliseconds to seconds
+    accumulator -= fixedUpdateInterval;
+  }
+
+  // Request the next frame
+  requestAnimationFrame(updateGame);
+}
+
+function gameLogic(deltaTime) {
+  // Scale movements based on deltaTime
+  const scaledBallSpeedX = ballSpeedX * deltaTime;
+  const scaledBallSpeedY = ballSpeedY * deltaTime;
+  const scaledOpponentSpeed = opponentSpeed * deltaTime;
 
   // Move opponent paddle (simple AI)
   if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
@@ -73,11 +89,8 @@ function updateGame(currentTime) {
 
   // Update scoreboard
   updateScore();
-
-  // Request next frame
-  requestAnimationFrame(updateGame);
 }
 
 // Initialize scoreboard and game
 updateScore();
-updateGame(performance.now()); // Pass the initial timestamp
+updateGame(performance.now()); // Start the game loop
