@@ -1,14 +1,7 @@
-// Get game elements
-const playerPaddle = document.getElementById("player-paddle");
-const opponentPaddle = document.getElementById("opponent-paddle");
-const ball = document.getElementById("ball");
-const gameContainer = document.getElementById("game-container");
-const scoreboard = document.getElementById("scoreboard");
-
 // Game variables
 let ballSpeedX = 3;
 let ballSpeedY = 3;
-let opponentSpeed = 3;
+let opponentSpeed = 1.5; // Slower opponent speed to make the game more balanced
 
 // Ball position
 let ballX = gameContainer.clientWidth / 2;
@@ -46,15 +39,24 @@ function endGame(winner) {
 
 // Update game frame
 function updateGame() {
-  opponentPaddleY += opponentSpeed * (ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1);
+  // Randomness in opponent paddle movement
+  const randomFactor = Math.random() * 0.5 - 0.25; // Small random factor between -0.25 and 0.25
+  const opponentMovement = ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1;
+  
+  // Adjust opponent paddle movement to add a small random factor
+  opponentPaddleY += opponentSpeed * opponentMovement + randomFactor;
+
+  // Prevent opponent from moving out of bounds
   opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
   opponentPaddle.style.top = `${opponentPaddleY}px`;
 
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
+  // Ball collision with top and bottom walls
   if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) ballSpeedY *= -1;
 
+  // Ball collision with player paddle
   if (
     ballX <= playerPaddle.offsetLeft + playerPaddle.clientWidth &&
     ballY + ball.clientHeight >= playerPaddleY &&
@@ -63,6 +65,7 @@ function updateGame() {
     ballSpeedX *= -1;
   }
 
+  // Ball collision with opponent paddle
   if (
     ballX + ball.clientWidth >= opponentPaddle.offsetLeft &&
     ballY + ball.clientHeight >= opponentPaddleY &&
@@ -71,6 +74,7 @@ function updateGame() {
     ballSpeedX *= -1;
   }
 
+  // Scoring logic
   if (ballX <= 0) {
     opponentScore++;
     if (opponentScore === maxScore) endGame("Opponent");
