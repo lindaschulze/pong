@@ -1,64 +1,82 @@
-// Game variables for fixed update
-const fixedUpdateInterval = 1000 / 60; // 60 updates per second
-let lastUpdateTime = performance.now(); // Time of the last update
-let accumulator = 0; // Tracks leftover time for consistent updates
+// Get game elements
+const playerPaddle = document.getElementById("player-paddle");
+const opponentPaddle = document.getElementById("opponent-paddle");
+const ball = document.getElementById("ball");
+const gameContainer = document.getElementById("game-container");
+const scoreboard = document.getElementById("scoreboard");
 
-function updateGame(currentTime) {
-  // Calculate the time elapsed since the last frame
-  const elapsedTime = currentTime - lastUpdateTime;
-  lastUpdateTime = currentTime;
+// Game variables
+let ballSpeedX = 300; // Pixels per second
+let ballSpeedY = 300; // Pixels per second
+let opponentSpeed = 300; // Pixels per second
+let ballX, ballY, playerPaddleY, opponentPaddleY;
 
-  // Accumulate the time elapsed
-  accumulator += elapsedTime;
+// Scoring
+let playerScore = 0;
+let opponentScore = 0;
+const maxScore = 5; // End game at this score
 
-  // Process game logic in fixed intervals
-  while (accumulator >= fixedUpdateInterval) {
-    gameLogic(fixedUpdateInterval / 1000); // Convert milliseconds to seconds
-    accumulator -= fixedUpdateInterval;
-  }
+// Initialize positions
+function resetPositions() {
+  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+  playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
+  opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
 
-  // Request the next frame
-  requestAnimationFrame(updateGame);
+  ballSpeedX *= -1; // Reverse ball direction
+  ball.style.left = `${ballX}px`;
+  ball.style.top = `${ballY}px`;
+  playerPaddle.style.top = `${playerPaddleY}px`;
+  opponentPaddle.style.top = `${opponentPaddleY}px`;
 }
 
+// Update scoreboard
+function updateScore() {
+  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
+}
+
+// End game
+function endGame(winner) {
+  alert(`${winner} wins!`);
+  playerScore = 0;
+  opponentScore = 0;
+  updateScore();
+  resetPositions();
+}
+
+// Update game logic
 function gameLogic(deltaTime) {
-  // Scale movements based on deltaTime
-  const scaledBallSpeedX = ballSpeedX * deltaTime;
-  const scaledBallSpeedY = ballSpeedY * deltaTime;
-  const scaledOpponentSpeed = opponentSpeed * deltaTime;
-
-  // Move opponent paddle (simple AI)
-  if (opponentPaddleY + opponentPaddle.clientHeight / 2 < ballY) {
-    opponentPaddleY += scaledOpponentSpeed;
+  // Update opponent paddle (simple AI)
+  if (opponentPaddleY + opponentPaddle.offsetHeight / 2 < ballY) {
+    opponentPaddleY += opponentSpeed * deltaTime;
   } else {
-    opponentPaddleY -= scaledOpponentSpeed;
+    opponentPaddleY -= opponentSpeed * deltaTime;
   }
-  opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
-  opponentPaddle.style.top = opponentPaddleY + "px";
+  opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.offsetHeight));
 
-  // Move ball
-  ballX += scaledBallSpeedX;
-  ballY += scaledBallSpeedY;
+  // Update ball position
+  ballX += ballSpeedX * deltaTime;
+  ballY += ballSpeedY * deltaTime;
 
-  // Ball collision with top and bottom walls
-  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) {
+  // Ball collision with walls
+  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.offsetHeight) {
     ballSpeedY *= -1;
   }
 
   // Ball collision with player paddle
   if (
     ballX <= playerPaddle.offsetLeft + playerPaddle.clientWidth &&
-    ballY + ball.clientHeight >= playerPaddleY &&
-    ballY <= playerPaddleY + playerPaddle.clientHeight
+    ballY + ball.offsetHeight >= playerPaddleY &&
+    ballY <= playerPaddleY + playerPaddle.offsetHeight
   ) {
     ballSpeedX *= -1;
   }
 
   // Ball collision with opponent paddle
   if (
-    ballX + ball.clientWidth >= opponentPaddle.offsetLeft &&
-    ballY + ball.clientHeight >= opponentPaddleY &&
-    ballY <= opponentPaddleY + opponentPaddle.clientHeight
+    ballX + ball.offsetWidth >= opponentPaddle.offsetLeft &&
+    ballY + ball.offsetHeight >= opponentPaddleY &&
+    ballY <= opponentPaddleY + opponentPaddle.offsetHeight
   ) {
     ballSpeedX *= -1;
   }
@@ -69,28 +87,66 @@ function gameLogic(deltaTime) {
     if (opponentScore === maxScore) {
       endGame("Opponent");
     } else {
-      resetBall();
+      resetPositions();
     }
-  } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
+  } else if (ballX >= gameContainer.clientWidth - ball.offsetWidth) {
     playerScore++;
     if (playerScore === maxScore) {
       endGame("Player");
     } else {
-      resetBall();
+      resetPositions();
     }
   }
 
-  // Update ball position
-  ball.style.left = ballX + "px";
-  ball.style.top = ballY + "px";
-
-  // Update player paddle position
-  playerPaddle.style.top = playerPaddleY + "px";
-
-  // Update scoreboard
-  updateScore();
+  // Update positions on screen
+  ball.style.left = `${ballX}px`;
+  ball.style.top = `${ballY}px`;
+  opponentPaddle.style.top = `${opponentPaddleY}px`;
 }
 
-// Initialize scoreboard and game
+// Animation loop with fixed timestep
+let lastFrameTime = performance.now();
+
+function gameLoop(currentTime) {
+  const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert ms to seconds
+  lastFrameTime = currentTime;
+
+  gameLogic(deltaTime); // Update game logic
+  updateScore(); // Ensure scoreboard stays updated
+
+  requestAnimationFrame(gameLoop); // Request next frame
+}
+
+// Initialize game
+resetPositions();
 updateScore();
-updateGame(performance.now()); // Start the game loop
+gameLoop(lastFrameTime);
+
+// Input handling for desktop
+gameContainer.addEventListener("mousemove", (e) => {
+  const mouseY = e.clientY - gameContainer.offsetTop;
+  playerPaddleY = mouseY - playerPaddle.offsetHeight / 2;
+
+  // Prevent paddle from going out of bounds
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.offsetHeight));
+  playerPaddle.style.top = `${playerPaddleY}px`;
+});
+
+// Touch handling for mobile
+let touchStartY = 0;
+
+gameContainer.addEventListener("touchstart", (e) => {
+  touchStartY = e.touches[0].clientY;
+});
+
+gameContainer.addEventListener("touchmove", (e) => {
+  const touchY = e.touches[0].clientY;
+  const deltaY = touchY - touchStartY;
+  touchStartY = touchY;
+
+  playerPaddleY += deltaY;
+
+  // Prevent paddle from going out of bounds
+  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.offsetHeight));
+  playerPaddle.style.top = `${playerPaddleY}px`;
+});
