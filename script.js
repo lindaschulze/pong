@@ -6,8 +6,8 @@ const gameContainer = document.getElementById("game-container");
 const scoreboard = document.getElementById("scoreboard");
 
 // Game variables
-let ballSpeedX = 3; // Speed in percentage per ms
-let ballSpeedY = 3; // Speed in percentage per ms
+let ballSpeedX = 1.5; // Speed in percentage per ms
+let ballSpeedY = 1.5; // Speed in percentage per ms
 let opponentSpeed = 3;
 
 // Ball position
