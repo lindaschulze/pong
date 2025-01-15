@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Ping Pong</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yay Pong</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Scoreboard -->
-  <div id="scoreboard"></div>
+    <!-- Auswahlseite -->
+    <div id="selectionScreen" class="screen">
+        <h1>Wähle deinen Player!</h1>
+        <div class="options">
+            <img src="paddle1.png" alt="Player 1" id="paddle1Option" class="paddle-option">
+            <img src="paddle2.png" alt="Player 2" id="paddle2Option" class="paddle-option">
+        </div>
+    </div>
 
-  <!-- Game Container -->
-  <div id="game-container">
-    <div id="player-paddle" class="paddle"></div>
-    <div id="opponent-paddle" class="paddle"></div>
-    <div id="ball"></div>
-  </div>
+    <!-- Spielfläche -->
+    <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
