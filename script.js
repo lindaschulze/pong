@@ -14,18 +14,21 @@ const paddle1Option = document.getElementById('paddle1Option');
 const paddle2Option = document.getElementById('paddle2Option');
 
 // Spielobjekte
-const paddleWidth = 10;
-const paddleHeight = 100;
-const paddle1 = { x: 10, y: canvas.height / 2 - paddleHeight / 2 };
-const paddle2 = { x: canvas.width - 20, y: canvas.height / 2 - paddleHeight / 2 };
+const paddleSpeed = 5;
+const paddle1 = { x: 10, y: canvas.height / 2 - 50, width: 0, height: 0, dy: 0 };
+const paddle2 = { x: canvas.width - 20, y: canvas.height / 2 - 50, width: 0, height: 0, dy: 0 };
 const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, dx: 2, dy: 2 };
 
 // Linker Schläger (Standard)
 let selectedPaddleImage = paddle1Img;
 
-// Paddle zeichnen
+// Paddle zeichnen mit Originalproportionen
 function drawPaddle(paddle, image) {
-    ctx.drawImage(image, paddle.x, paddle.y, paddleWidth, paddleHeight);
+    if (paddle.width === 0 || paddle.height === 0) {
+        paddle.width = image.width;
+        paddle.height = image.height;
+    }
+    ctx.drawImage(image, paddle.x, paddle.y, paddle.width, paddle.height);
 }
 
 // Ball zeichnen
@@ -35,6 +38,20 @@ function drawBall() {
     ctx.fillStyle = 'white';
     ctx.fill();
     ctx.closePath();
+}
+
+// Schläger bewegen
+function movePaddles() {
+    paddle1.y += paddle1.dy;
+    paddle2.y += paddle2.dy;
+
+    // Begrenzung für paddle1
+    if (paddle1.y < 0) paddle1.y = 0;
+    if (paddle1.y + paddle1.height > canvas.height) paddle1.y = canvas.height - paddle1.height;
+
+    // Begrenzung für paddle2
+    if (paddle2.y < 0) paddle2.y = 0;
+    if (paddle2.y + paddle2.height > canvas.height) paddle2.y = canvas.height - paddle2.height;
 }
 
 // Spiel aktualisieren
@@ -50,12 +67,12 @@ function updateGame() {
 
     // Kollision mit Schlägern
     if (
-        (ball.x - ball.radius < paddle1.x + paddleWidth &&
+        (ball.x - ball.radius < paddle1.x + paddle1.width &&
             ball.y > paddle1.y &&
-            ball.y < paddle1.y + paddleHeight) ||
+            ball.y < paddle1.y + paddle1.height) ||
         (ball.x + ball.radius > paddle2.x &&
             ball.y > paddle2.y &&
-            ball.y < paddle2.y + paddleHeight)
+            ball.y < paddle2.y + paddle2.height)
     ) {
         ball.dx = -ball.dx;
     }
@@ -69,8 +86,9 @@ function updateGame() {
     drawBall();
 }
 
-// Spiel starten
+// Spiel-Loop
 function gameLoop() {
+    movePaddles();
     updateGame();
     requestAnimationFrame(gameLoop);
 }
@@ -92,3 +110,16 @@ function startGame() {
     canvas.style.display = 'block';
     gameLoop();
 }
+
+// Tastensteuerung
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'w') paddle1.dy = -paddleSpeed; // Spieler 1 nach oben
+    if (event.key === 's') paddle1.dy = paddleSpeed;  // Spieler 1 nach unten
+    if (event.key === 'ArrowUp') paddle2.dy = -paddleSpeed; // Spieler 2 nach oben
+    if (event.key === 'ArrowDown') paddle2.dy = paddleSpeed; // Spieler 2 nach unten
+});
+
+document.addEventListener('keyup', (event) => {
+    if (event.key === 'w' || event.key === 's') paddle1.dy = 0; // Spieler 1 stoppt
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') paddle2.dy = 0; // Spieler 2 stoppt
+});
