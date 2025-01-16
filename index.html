@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ping Pong Game</title>
+  <title>Responsive Ping Pong</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="scoreboard">
-    <div>Round: <span id="round-number">1</span> / 5</div>
-    <div>Player: <span id="player-score">0</span> | Opponent: <span id="opponent-score">0</span></div>
-  </div>
+  <!-- Scoreboard -->
+  <div id="scoreboard"></div>
+
+  <!-- Game Container -->
   <div id="game-container">
-    <div id="net"></div>
-    <div id="player-paddle"></div>
-    <div id="opponent-paddle"></div>
+    <div id="player-paddle" class="paddle"></div>
+    <div id="opponent-paddle" class="paddle"></div>
     <div id="ball"></div>
   </div>
-  <div id="winner-message" class="hidden"></div>
-  <script src="game.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>
