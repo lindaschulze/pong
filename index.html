@@ -1,26 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wähle deinen Player!</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .player-option {
+      display: inline-block;
+      margin: 10px;
+    }
+    img {
+      width: 100px; /* Adjust size to match the proportional size of the original paddles */
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div id="start-screen">
-        <h1>Wähle deinen Player!</h1>
-        <div class="player-options">
-            <button onclick="selectPaddle('paddle1.png')">
-                <img src="paddle1.png" alt="Player 1" class="paddle-option">
-            </button>
-            <button onclick="selectPaddle('paddle2.png')">
-                <img src="paddle2.png" alt="Player 2" class="paddle-option">
-            </button>
-        </div>
-    </div>
+  <h1>Wähle deinen Player!</h1>
+  <div class="player-option">
+    <h2>Player 1</h2>
+    <img src="paddle1.png" alt="Paddle 1">
+    <button onclick="selectPaddle('paddle1.png')">Wählen</button>
+  </div>
+  <div class="player-option">
+    <h2>Player 2</h2>
+    <img src="paddle2.png" alt="Paddle 2">
+    <button onclick="selectPaddle('paddle2.png')">Wählen</button>
+  </div>
 
-    <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
-
-    <script src="script.js"></script>
+  <script>
+    function selectPaddle(paddleImage) {
+      // Store the selected paddle image in localStorage or sessionStorage
+      sessionStorage.setItem('playerPaddle', paddleImage);
+      window.location.href = 'game.html'; // Redirect to the game page
+    }
+  </script>
 </body>
 </html>
