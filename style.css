@@ -25,3 +25,9 @@ body {
     width: 100px;
     height: auto;
 }
+
+canvas {
+    display: block;
+    margin: auto;
+    border: 1px solid white;
+}
