@@ -4,24 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wähle deinen Player!</title>
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial, sans-serif;
-    }
-    .player-option {
-      display: inline-block;
-      margin: 10px;
-    }
-    img {
-      width: 100px; /* Adjust size to match the proportional size of the original paddles */
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Wähle deinen Player!</h1>
@@ -36,12 +19,6 @@
     <button onclick="selectPaddle('paddle2.png')">Wählen</button>
   </div>
 
-  <script>
-    function selectPaddle(paddleImage) {
-      // Store the selected paddle image in sessionStorage
-      sessionStorage.setItem('playerPaddle', paddleImage);
-      window.location.href = 'pong.html'; // Redirect to the game page (pong.html)
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
