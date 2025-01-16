@@ -1,104 +1,26 @@
-let selectedPaddle = 'paddle1.png';
-let ballX = 400;
-let ballY = 300;
-let ballSpeedX = 5;
-let ballSpeedY = 4;
-let paddleLeftY = 250;
-let paddleRightY = 250;
-const PADDLE_HEIGHT = 100;
-const PADDLE_WIDTH = 10;
-const BALL_SIZE = 10;
+window.onload = function() {
+  // Hole das ausgewählte Paddle-Bild aus dem sessionStorage
+  const selectedPaddle = sessionStorage.getItem('playerPaddle') || 'paddle1.png'; // Standardmäßig 'paddle1.png'
 
-function selectPaddle(paddle) {
-    selectedPaddle = paddle;
-    document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    startGame();
-}
+  // Ersetze das linke Paddle mit dem ausgewählten Bild
+  const leftPaddle = document.getElementById('leftPaddle');
+  leftPaddle.src = selectedPaddle; // Setze das Bild des linken Paddles
+
+  // Falls nötig, die Größe anpassen
+  const originalWidth = 10; // Originalbreite des Paddles
+  const originalHeight = 50; // Originalhöhe des Paddles
+  const img = new Image();
+  img.src = selectedPaddle;
+  img.onload = function() {
+    const aspectRatio = img.width / img.height;
+    leftPaddle.width = originalWidth; // Breite bleibt gleich
+    leftPaddle.height = originalWidth / aspectRatio; // Höhe basierend auf dem Seitenverhältnis anpassen
+  };
+
+  // Das Spiel nach Auswahl des Paddles starten
+  startGame();
+};
 
 function startGame() {
-    const canvas = document.getElementById('gameCanvas');
-    const context = canvas.getContext('2d');
-
-    const paddleLeftImage = new Image();
-    paddleLeftImage.src = selectedPaddle;
-
-    const paddleRightImage = new Image();
-    paddleRightImage.src = 'paddle2.png';
-
-    function drawRect(x, y, width, height, color) {
-        context.fillStyle = color;
-        context.fillRect(x, y, width, height);
-    }
-
-    function drawBall() {
-        context.fillStyle = 'white';
-        context.beginPath();
-        context.arc(ballX, ballY, BALL_SIZE / 2, 0, Math.PI * 2, true);
-        context.fill();
-    }
-
-    function drawPaddle(x, y, image) {
-        context.drawImage(image, x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
-    }
-
-    function moveEverything() {
-        ballX += ballSpeedX;
-        ballY += ballSpeedY;
-
-        if (ballY < 0 || ballY > canvas.height) {
-            ballSpeedY = -ballSpeedY;
-        }
-
-        if (ballX < 0) {
-            if (ballY > paddleLeftY && ballY < paddleLeftY + PADDLE_HEIGHT) {
-                ballSpeedX = -ballSpeedX;
-            } else {
-                resetBall();
-            }
-        }
-
-        if (ballX > canvas.width) {
-            if (ballY > paddleRightY && ballY < paddleRightY + PADDLE_HEIGHT) {
-                ballSpeedX = -ballSpeedX;
-            } else {
-                resetBall();
-            }
-        }
-    }
-
-    function resetBall() {
-        ballX = canvas.width / 2;
-        ballY = canvas.height / 2;
-        ballSpeedX = -ballSpeedX;
-    }
-
-    function drawEverything() {
-        drawRect(0, 0, canvas.width, canvas.height, 'black');
-        drawPaddle(0, paddleLeftY, paddleLeftImage);
-        drawPaddle(canvas.width - PADDLE_WIDTH, paddleRightY, paddleRightImage);
-        drawBall();
-    }
-
-    function gameLoop() {
-        moveEverything();
-        drawEverything();
-        requestAnimationFrame(gameLoop);
-    }
-
-    paddleLeftImage.onload = () => {
-        paddleRightImage.onload = () => {
-            gameLoop();
-        };
-    };
+  // Hier kommt der bestehende Initialisierungscode des Spiels
 }
-
-window.onload = () => {
-    document.addEventListener('mousemove', (evt) => {
-        const canvas = document.getElementById('gameCanvas');
-        const rect = canvas.getBoundingClientRect();
-        const root = document.documentElement;
-        const mouseY = evt.clientY - rect.top - root.scrollTop;
-        paddleLeftY = mouseY - PADDLE_HEIGHT / 2;
-    });
-};
