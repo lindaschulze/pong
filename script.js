@@ -1,133 +1,169 @@
-// Get game elements
-const playerPaddle = document.getElementById("player-paddle");
-const opponentPaddle = document.getElementById("opponent-paddle");
-const ball = document.getElementById("ball");
-const gameContainer = document.getElementById("game-container");
-const scoreboard = document.getElementById("scoreboard");
+const canvas = document.getElementById("pongCanvas");
+const ctx = canvas.getContext("2d");
 
-// Game variables
-let ballSpeedX = 3;
-let ballSpeedY = 3;
-let opponentSpeed = 1.5; // Slower opponent speed to make the game more balanced
+// Spielfeldgrößen
+canvas.width = 800;
+canvas.height = 400;
 
-// Ball position
-let ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
-let ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+// Paddle-Größen
+const paddleHeight = 100;
+const paddleWidth = 10;
+const paddleSpeed = 5;
 
-// Paddle positions
-let playerPaddleY = gameContainer.clientHeight / 2 - playerPaddle.offsetHeight / 2;
-let opponentPaddleY = gameContainer.clientHeight / 2 - opponentPaddle.offsetHeight / 2;
+// Ball
+const ball = {
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  radius: 10,
+  dx: 3,
+  dy: 3,
+};
 
-// Scoring
-let playerScore = 0;
-let opponentScore = 0;
-const maxScore = 5;
+// Paddles
+const paddleImage1 = new Image();
+paddleImage1.src = "paddle1.png";
 
-// Update scoreboard
-function updateScore() {
-  scoreboard.textContent = `Player: ${playerScore} | Opponent: ${opponentScore}`;
+const paddleImage2 = new Image();
+paddleImage2.src = "paddle2.png";
+
+const leftPaddle = {
+  x: 0,
+  y: canvas.height / 2 - paddleHeight / 2,
+  height: paddleHeight,
+  dy: 0,
+  img: paddleImage1,
+};
+
+const rightPaddle = {
+  x: canvas.width - paddleWidth,
+  y: canvas.height / 2 - paddleHeight / 2,
+  height: paddleHeight,
+  dy: 0,
+  img: paddleImage2,
+};
+
+// Eventlistener für Paddle-Steuerung
+document.addEventListener("keydown", (event) => {
+  switch (event.key) {
+    case "w":
+      leftPaddle.dy = -paddleSpeed;
+      break;
+    case "s":
+      leftPaddle.dy = paddleSpeed;
+      break;
+    case "ArrowUp":
+      rightPaddle.dy = -paddleSpeed;
+      break;
+    case "ArrowDown":
+      rightPaddle.dy = paddleSpeed;
+      break;
+  }
+});
+
+document.addEventListener("keyup", (event) => {
+  switch (event.key) {
+    case "w":
+    case "s":
+      leftPaddle.dy = 0;
+      break;
+    case "ArrowUp":
+    case "ArrowDown":
+      rightPaddle.dy = 0;
+      break;
+  }
+});
+
+// Funktion zum Zeichnen der Paddles als Bilder
+function drawImage(paddle) {
+  const aspectRatio = paddle.img.width / paddle.img.height;
+  const newWidth = paddle.height * aspectRatio; // Breite proportional zur fixen Höhe
+  ctx.drawImage(paddle.img, paddle.x, paddle.y, newWidth, paddle.height);
 }
 
-// Reset ball position
+// Funktion zum Zeichnen des Balls
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fill();
+  ctx.closePath();
+}
+
+// Spielfeld zeichnen
+function drawField() {
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// Update der Paddle-Positionen
+function updatePaddlePosition(paddle) {
+  paddle.y += paddle.dy;
+
+  // Paddles innerhalb des Spielfelds halten
+  if (paddle.y < 0) paddle.y = 0;
+  if (paddle.y + paddle.height > canvas.height)
+    paddle.y = canvas.height - paddle.height;
+}
+
+// Ballposition aktualisieren
+function updateBall() {
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  // Ball prallt von den oberen und unteren Rändern ab
+  if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+    ball.dy *= -1;
+  }
+
+  // Kollision mit linken Paddle
+  if (
+    ball.x - ball.radius < leftPaddle.x + paddleWidth &&
+    ball.y > leftPaddle.y &&
+    ball.y < leftPaddle.y + leftPaddle.height
+  ) {
+    ball.dx *= -1;
+    ball.x = leftPaddle.x + paddleWidth + ball.radius; // Überschneidung korrigieren
+  }
+
+  // Kollision mit rechtem Paddle
+  if (
+    ball.x + ball.radius > rightPaddle.x &&
+    ball.y > rightPaddle.y &&
+    ball.y < rightPaddle.y + rightPaddle.height
+  ) {
+    ball.dx *= -1;
+    ball.x = rightPaddle.x - ball.radius; // Überschneidung korrigieren
+  }
+
+  // Ball aus dem Spielfeld (Punkte für Gegner)
+  if (ball.x < 0 || ball.x > canvas.width) {
+    resetBall();
+  }
+}
+
+// Ball zurücksetzen
 function resetBall() {
-  ballX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
-  ballY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-  ballSpeedX *= -1;
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height / 2;
+  ball.dx *= -1; // Richtung ändern
 }
 
-// End game
-function endGame(winner) {
-  alert(`${winner} wins!`);
-  playerScore = 0;
-  opponentScore = 0;
-  resetBall();
-  updateScore();
+// Spielschleife
+function gameLoop() {
+  drawField();
+
+  drawImage(leftPaddle);
+  drawImage(rightPaddle);
+  drawBall();
+
+  updatePaddlePosition(leftPaddle);
+  updatePaddlePosition(rightPaddle);
+  updateBall();
+
+  requestAnimationFrame(gameLoop);
 }
 
-// Update game frame
-function updateGame() {
-  // Randomness in opponent paddle movement
-  const randomFactor = Math.random() * 0.5 - 0.25; // Small random factor between -0.25 and 0.25
-  const opponentMovement = ballY > opponentPaddleY + opponentPaddle.clientHeight / 2 ? 1 : -1;
-  
-  // Adjust opponent paddle movement to add a small random factor
-  opponentPaddleY += opponentSpeed * opponentMovement + randomFactor;
-
-  // Prevent opponent from moving out of bounds
-  opponentPaddleY = Math.max(0, Math.min(opponentPaddleY, gameContainer.clientHeight - opponentPaddle.clientHeight));
-  opponentPaddle.style.top = `${opponentPaddleY}px`;
-
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
-
-  // Ball collision with top and bottom walls
-  if (ballY <= 0 || ballY >= gameContainer.clientHeight - ball.clientHeight) ballSpeedY *= -1;
-
-  // Ball collision with player paddle
-  if (
-    ballX <= playerPaddle.offsetLeft + playerPaddle.clientWidth &&
-    ballY + ball.clientHeight >= playerPaddleY &&
-    ballY <= playerPaddleY + playerPaddle.clientHeight
-  ) {
-    ballSpeedX *= -1;
-  }
-
-  // Ball collision with opponent paddle
-  if (
-    ballX + ball.clientWidth >= opponentPaddle.offsetLeft &&
-    ballY + ball.clientHeight >= opponentPaddleY &&
-    ballY <= opponentPaddleY + opponentPaddle.clientHeight
-  ) {
-    ballSpeedX *= -1;
-  }
-
-  // Scoring logic
-  if (ballX <= 0) {
-    opponentScore++;
-    if (opponentScore === maxScore) endGame("Opponent");
-    else resetBall();
-  } else if (ballX >= gameContainer.clientWidth - ball.clientWidth) {
-    playerScore++;
-    if (playerScore === maxScore) endGame("Player");
-    else resetBall();
-  }
-
-  // Update ball and paddle positions on screen
-  ball.style.left = `${ballX}px`;
-  ball.style.top = `${ballY}px`;
-
-  playerPaddle.style.top = `${playerPaddleY}px`;
-
-  // Update the score
-  updateScore();
-
-  // Ensure the game loop runs by calling requestAnimationFrame
-  requestAnimationFrame(updateGame);
-}
-
-// Handle touch and mouse controls
-let touchStartY = 0;
-
-// Handle touchstart event (for mobile)
-gameContainer.addEventListener("touchstart", (e) => {
-  touchStartY = e.touches[0].clientY;
-});
-
-// Handle touchmove event (for mobile)
-gameContainer.addEventListener("touchmove", (e) => {
-  playerPaddleY += e.touches[0].clientY - touchStartY;
-  touchStartY = e.touches[0].clientY;
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-  e.preventDefault();
-});
-
-// Handle mousemove event (for desktop)
-gameContainer.addEventListener("mousemove", (e) => {
-  const containerRect = gameContainer.getBoundingClientRect(); // Get the container's position relative to the viewport
-  playerPaddleY = e.clientY - containerRect.top - playerPaddle.clientHeight / 2;
-  playerPaddleY = Math.max(0, Math.min(playerPaddleY, gameContainer.clientHeight - playerPaddle.clientHeight));
-});
-
-// Start the game loop
-updateScore();
-updateGame();
+// Spiel starten, nachdem die Bilder geladen sind
+paddleImage1.onload = paddleImage2.onload = () => {
+  gameLoop();
+};
