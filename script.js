@@ -80,7 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Paddle zeichnen
     function drawPaddle(paddle, image) {
         const paddleWidthDynamic = paddleHeight * paddleAspectRatio; // Breite proportional zur Höhe
+
+        // Erlauben, dass ein Teil außerhalb des Spielfelds angezeigt wird
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, canvas.width, canvas.height);
+        ctx.clip(); // Clipping aufheben
+
         ctx.drawImage(image, paddle.x, paddle.y, paddleWidthDynamic, paddleHeight);
+        ctx.restore();
     }
 
     // Ball zeichnen
