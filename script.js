@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = canvas.getContext("2d");
 
     const paddleHeight = 100;
-    const paddleWidth = 10; // Höhe fix, Breite wird dynamisch angepasst
-    let paddleAspectRatio = 1; // Verhältnis (wird dynamisch gesetzt)
+    const paddleWidth = 10; // Höhe fix, Breite dynamisch
+    let paddleAspectRatio = 1; // Verhältnis, wird aus Bildgröße berechnet
 
     // Bilder der Paddle
     const paddleImage1 = new Image();
@@ -13,9 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const paddleImage2 = new Image();
     paddleImage2.src = "paddle2.png";
 
-    // Dynamische Breite basierend auf Bild
     paddleImage1.onload = () => (paddleAspectRatio = paddleImage1.width / paddleImage1.height);
-    paddleImage2.onload = () => (paddleAspectRatio = paddleImage2.width / paddleImage2.height);
 
     // Paddle-Positionen
     const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
@@ -33,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Key States
     const keys = { w: false, s: false, ArrowUp: false, ArrowDown: false };
 
-    // Touch Positionen
+    // Touch Positions
     let touchPaddle1 = null;
     let touchPaddle2 = null;
 
@@ -46,30 +44,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key in keys) keys[event.key] = false;
     });
 
-    // Steuerung durch Touch
+    // Touchsteuerung für Paddle
     canvas.addEventListener("touchmove", (event) => {
         event.preventDefault();
 
-        const touch = event.touches[0];
-        const touchX = touch.clientX - canvas.offsetLeft;
-        const touchY = touch.clientY - canvas.offsetTop;
+        for (let touch of event.touches) {
+            const touchX = touch.clientX - canvas.offsetLeft;
+            const touchY = touch.clientY - canvas.offsetTop;
 
-        if (touchX < canvas.width / 2) {
-            // Linkes Paddle
-            paddle1.y = touchY - paddleHeight / 2;
-            touchPaddle1 = touchY;
-        } else {
-            // Rechtes Paddle
-            paddle2.y = touchY - paddleHeight / 2;
-            touchPaddle2 = touchY;
+            if (touchX < canvas.width / 2) {
+                // Linkes Paddle
+                paddle1.y = touchY - paddleHeight / 2;
+            } else {
+                // Rechtes Paddle
+                paddle2.y = touchY - paddleHeight / 2;
+            }
         }
-
-        // Grenzen überprüfen
-        if (paddle1.y < 0) paddle1.y = 0;
-        if (paddle1.y > canvas.height - paddleHeight) paddle1.y = canvas.height - paddleHeight;
-
-        if (paddle2.y < 0) paddle2.y = 0;
-        if (paddle2.y > canvas.height - paddleHeight) paddle2.y = canvas.height - paddleHeight;
     });
 
     // Spielfeld zeichnen
@@ -105,10 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Paddle bewegen
     function movePaddles() {
         // Tastatursteuerung
-        if (keys.w && paddle1.y > 0) paddle1.y -= 5;
-        if (keys.s && paddle1.y < canvas.height - paddleHeight) paddle1.y += 5;
-        if (keys.ArrowUp && paddle2.y > 0) paddle2.y -= 5;
-        if (keys.ArrowDown && paddle2.y < canvas.height - paddleHeight) paddle2.y += 5;
+        if (keys.w && paddle1.y > -paddleHeight) paddle1.y -= 5; // Bewegungsbereich erweitern
+        if (keys.s && paddle1.y < canvas.height) paddle1.y += 5;
+        if (keys.ArrowUp && paddle2.y > -paddleHeight) paddle2.y -= 5;
+        if (keys.ArrowDown && paddle2.y < canvas.height) paddle2.y += 5;
     }
 
     // Ball bewegen
