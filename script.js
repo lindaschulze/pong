@@ -102,7 +102,8 @@ canvas.addEventListener("touchmove", handleTouchMove, false);
 
 // Funktion zum Zeichnen des Spiels
 function draw() {
-    context.clearRect(0, 0, canvas.width, canvas.height);  // Spielfeld löschen
+    // Spielfeld löschen (nur den Hintergrund und das Spielfeld, nicht den Ball oder die Paddles)
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     drawCenterLine();
     drawScore();
