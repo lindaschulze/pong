@@ -1,115 +1,151 @@
-// Initialisieren des Spielfeldes und der Variablen
-let canvas = document.getElementById("pong");
-let context = canvas.getContext("2d");
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-// Spielfeldgrößen
-canvas.width = 800;
-canvas.height = 600;
+    const paddleHeight = 100;
+    const paddleWidth = 10; // Höhe fix, Breite dynamisch
+    let paddleAspectRatio = 1; // Verhältnis, wird aus Bildgröße berechnet
 
-// Paddle-Eigenschaften
-let paddleWidth = 10, paddleHeight = 100;
-let paddle1Y = (canvas.height - paddleHeight) / 2, paddle2Y = (canvas.height - paddleHeight) / 2;
+    // Bilder der Paddle
+    const paddleImage1 = new Image();
+    paddleImage1.src = "paddle1.png";
 
-// Ball-Eigenschaften
-let ballRadius = 10;
-let ballX = canvas.width / 2, ballY = canvas.height / 2;
-let ballSpeedX = 5, ballSpeedY = 5;
+    const paddleImage2 = new Image();
+    paddleImage2.src = "paddle2.png";
 
-// Punktestand
-let score1 = 0, score2 = 0;
+    paddleImage1.onload = () => (paddleAspectRatio = paddleImage1.width / paddleImage1.height);
 
-// Touch-Positionen
-let touchStartX, touchStartY;
+    // Paddle-Positionen
+    const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
+    const paddle2 = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2 };
 
-// Funktion zur Aktualisierung der Position des Balls
-function moveBall() {
-    ballX += ballSpeedX;
-    ballY += ballSpeedY;
+    // Ball
+    const ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 10,
+        dx: 2,
+        dy: 2,
+    };
 
-    // Ball-Kollision mit dem oberen und unteren Rand
-    if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = -ballSpeedY;
+    // Key States
+    const keys = { w: false, s: false, ArrowUp: false, ArrowDown: false };
+
+    // Touch Positions
+    let touchPaddle1 = null;
+    let touchPaddle2 = null;
+
+    // Steuerung durch Tastatur
+    document.addEventListener("keydown", (event) => {
+        if (event.key in keys) keys[event.key] = true;
+    });
+
+    document.addEventListener("keyup", (event) => {
+        if (event.key in keys) keys[event.key] = false;
+    });
+
+    // Touchsteuerung für Paddle
+    canvas.addEventListener("touchmove", (event) => {
+        event.preventDefault();
+
+        for (let touch of event.touches) {
+            const touchX = touch.clientX - canvas.offsetLeft;
+            const touchY = touch.clientY - canvas.offsetTop;
+
+            if (touchX < canvas.width / 2) {
+                // Linkes Paddle
+                paddle1.y = touchY - paddleHeight / 2;
+            } else {
+                // Rechtes Paddle
+                paddle2.y = touchY - paddleHeight / 2;
+            }
+        }
+    });
+
+    // Spielfeld zeichnen
+    function drawField() {
+        ctx.fillStyle = "darkgreen"; // Spielfeld dunkelgrün
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Mittellinie
+        ctx.strokeStyle = "white";
+        ctx.setLineDash([5, 15]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
     }
 
-    // Ball-Kollision mit den Paddles
-    if (ballX - ballRadius < paddleWidth && ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
+    // Paddle zeichnen
+    function drawPaddle(paddle, image) {
+        const paddleWidthDynamic = paddleHeight * paddleAspectRatio; // Breite proportional zur Höhe
+
+        // Erlauben, dass ein Teil außerhalb des Spielfelds angezeigt wird
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, canvas.width, canvas.height);
+        ctx.clip(); // Clipping aufheben
+
+        ctx.drawImage(image, paddle.x, paddle.y, paddleWidthDynamic, paddleHeight);
+        ctx.restore();
     }
-    if (ballX + ballRadius > canvas.width - paddleWidth && ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
+
+    // Ball zeichnen
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.closePath();
     }
 
-    // Punktestand aktualisieren
-    if (ballX - ballRadius < 0) {
-        score2++;
-        resetBall();
+    // Paddle bewegen
+    function movePaddles() {
+        // Tastatursteuerung
+        if (keys.w && paddle1.y > -paddleHeight) paddle1.y -= 5; // Bewegungsbereich erweitern
+        if (keys.s && paddle1.y < canvas.height) paddle1.y += 5;
+        if (keys.ArrowUp && paddle2.y > -paddleHeight) paddle2.y -= 5;
+        if (keys.ArrowDown && paddle2.y < canvas.height) paddle2.y += 5;
     }
-    if (ballX + ballRadius > canvas.width) {
-        score1++;
-        resetBall();
+
+    // Ball bewegen
+    function moveBall() {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy *= -1;
+
+        if (
+            (ball.x - ball.radius < paddle1.x + paddleWidth &&
+                ball.y > paddle1.y &&
+                ball.y < paddle1.y + paddleHeight) ||
+            (ball.x + ball.radius > paddle2.x &&
+                ball.y > paddle2.y &&
+                ball.y < paddle2.y + paddleHeight)
+        ) {
+            ball.dx *= -1;
+        }
+
+        if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx *= -1;
+        }
     }
-}
 
-// Funktion zum Zurücksetzen des Balls
-function resetBall() {
-    ballX = canvas.width / 2;
-    ballY = canvas.height / 2;
-    ballSpeedX = -ballSpeedX;
-}
+    // Spielschleife
+    function gameLoop() {
+        drawField();
+        movePaddles();
+        moveBall();
 
-// Funktion zur Anzeige des Punktestands
-function drawScore() {
-    context.font = "32px Arial";
-    context.fillText(score1, canvas.width / 4, 50);
-    context.fillText(score2, canvas.width * 3 / 4, 50);
-}
+        drawPaddle(paddle1, paddleImage1);
+        drawPaddle(paddle2, paddleImage2);
+        drawBall();
 
-// Funktion zum Zeichnen der Paddles
-function drawPaddles() {
-    context.fillStyle = "#0095DD";
-    context.fillRect(0, paddle1Y, paddleWidth, paddleHeight);  // Linkes Paddle
-    context.fillRect(canvas.width - paddleWidth, paddle2Y, paddleWidth, paddleHeight);  // Rechtes Paddle
-}
-
-// Funktion zum Zeichnen der Mittellinie
-function drawCenterLine() {
-    context.strokeStyle = "#0095DD";
-    context.beginPath();
-    context.moveTo(canvas.width / 2, 0);
-    context.lineTo(canvas.width / 2, canvas.height);
-    context.stroke();
-}
-
-// Funktion zum Verarbeiten der Touch-Events
-function handleTouchMove(event) {
-    let touchX = event.touches[0].clientX;
-    let touchY = event.touches[0].clientY;
-
-    // Überprüfen, ob der Touch auf der linken oder rechten Seite ist
-    if (touchX < canvas.width / 2) {
-        paddle1Y = touchY - paddleHeight / 2;  // Linkes Paddle folgt dem Touch
-        if (paddle1Y < 0) paddle1Y = 0;  // Grenzen für das linke Paddle
-        if (paddle1Y > canvas.height - paddleHeight) paddle1Y = canvas.height - paddleHeight;
-    } else {
-        paddle2Y = touchY - paddleHeight / 2;  // Rechtes Paddle folgt dem Touch
-        if (paddle2Y < 0) paddle2Y = 0;  // Grenzen für das rechte Paddle
-        if (paddle2Y > canvas.height - paddleHeight) paddle2Y = canvas.height - paddleHeight;
+        requestAnimationFrame(gameLoop);
     }
-}
 
-// Event Listener für Touch-Bewegung
-canvas.addEventListener("touchmove", handleTouchMove, false);
-
-// Funktion zum Zeichnen des Spiels
-function draw() {
-    // Spielfeld löschen (nur den Hintergrund und das Spielfeld, nicht den Ball oder die Paddles)
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawCenterLine();
-    drawScore();
-    drawPaddles();
-    moveBall();
-}
-
-// Das Spiel jede 20 ms aktualisieren
-setInterval(draw, 20);
+    gameLoop();
+});
