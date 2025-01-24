@@ -1,20 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    const paddleWidth = 10;
     const paddleHeight = 100;
+    const paddleWidth = 10; // Höhe fix, Breite wird dynamisch angepasst
+    const paddleAspectRatio = 1; // Standardverhältnis (wird dynamisch aktualisiert)
 
-    // Load paddle images
+    // Bilder der Paddle
     const paddleImage1 = new Image();
-    paddleImage1.src = 'paddle1.png';
+    paddleImage1.src = "paddle1.png";
+
     const paddleImage2 = new Image();
-    paddleImage2.src = 'paddle2.png';
+    paddleImage2.src = "paddle2.png";
 
-    paddleImage1.onload = () => console.log('Paddle 1 loaded');
-    paddleImage2.onload = () => console.log('Paddle 2 loaded');
+    // Dynamische Breite basierend auf Bild
+    paddleImage1.onload = () => (paddleAspectRatio = paddleImage1.width / paddleImage1.height);
+    paddleImage2.onload = () => (paddleAspectRatio = paddleImage2.width / paddleImage2.height);
 
-    // Paddle positions
+    // Paddle-Positionen
     const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
     const paddle2 = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2 };
 
@@ -24,38 +27,51 @@ document.addEventListener("DOMContentLoaded", () => {
         y: canvas.height / 2,
         radius: 10,
         dx: 2,
-        dy: 2
+        dy: 2,
     };
 
-    // Key states
+    // Key States
     const keys = { w: false, s: false, ArrowUp: false, ArrowDown: false };
 
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener("keydown", (event) => {
         if (event.key in keys) keys[event.key] = true;
     });
-    document.addEventListener('keyup', (event) => {
+
+    document.addEventListener("keyup", (event) => {
         if (event.key in keys) keys[event.key] = false;
     });
 
-    // Draw paddles
-    function drawPaddle(paddle, image) {
-        if (image.complete) {
-            ctx.drawImage(image, paddle.x, paddle.y, paddleWidth, paddleHeight);
-        } else {
-            console.log('Image not loaded:', image.src);
-        }
+    // Spielfeld zeichnen
+    function drawField() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Mittellinie
+        ctx.strokeStyle = "white";
+        ctx.setLineDash([5, 15]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
     }
 
-    // Draw ball
+    // Paddle zeichnen
+    function drawPaddle(paddle, image) {
+        const paddleWidthDynamic = paddleHeight * paddleAspectRatio; // Breite proportional zur Höhe
+        ctx.drawImage(image, paddle.x, paddle.y, paddleWidthDynamic, paddleHeight);
+    }
+
+    // Ball zeichnen
     function drawBall() {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = "white";
         ctx.fill();
         ctx.closePath();
     }
 
-    // Move paddles
+    // Paddle bewegen
     function movePaddles() {
         if (keys.w && paddle1.y > 0) paddle1.y -= 5;
         if (keys.s && paddle1.y < canvas.height - paddleHeight) paddle1.y += 5;
@@ -63,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (keys.ArrowDown && paddle2.y < canvas.height - paddleHeight) paddle2.y += 5;
     }
 
-    // Move ball
+    // Ball bewegen
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
@@ -88,9 +104,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Spielschleife
     function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        drawField();
         movePaddles();
         moveBall();
 
@@ -101,6 +117,5 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(gameLoop);
     }
 
-    console.log('Starting game loop');
     gameLoop();
 });
