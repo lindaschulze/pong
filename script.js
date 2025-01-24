@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const paddleHeight = 100;
     const paddleWidth = 10; // Höhe fix, Breite wird dynamisch angepasst
-    const paddleAspectRatio = 1; // Standardverhältnis (wird dynamisch aktualisiert)
+    let paddleAspectRatio = 1; // Verhältnis (wird dynamisch gesetzt)
 
     // Bilder der Paddle
     const paddleImage1 = new Image();
@@ -33,6 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Key States
     const keys = { w: false, s: false, ArrowUp: false, ArrowDown: false };
 
+    // Touch Positionen
+    let touchPaddle1 = null;
+    let touchPaddle2 = null;
+
+    // Steuerung durch Tastatur
     document.addEventListener("keydown", (event) => {
         if (event.key in keys) keys[event.key] = true;
     });
@@ -41,9 +46,35 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key in keys) keys[event.key] = false;
     });
 
+    // Steuerung durch Touch
+    canvas.addEventListener("touchmove", (event) => {
+        event.preventDefault();
+
+        const touch = event.touches[0];
+        const touchX = touch.clientX - canvas.offsetLeft;
+        const touchY = touch.clientY - canvas.offsetTop;
+
+        if (touchX < canvas.width / 2) {
+            // Linkes Paddle
+            paddle1.y = touchY - paddleHeight / 2;
+            touchPaddle1 = touchY;
+        } else {
+            // Rechtes Paddle
+            paddle2.y = touchY - paddleHeight / 2;
+            touchPaddle2 = touchY;
+        }
+
+        // Grenzen überprüfen
+        if (paddle1.y < 0) paddle1.y = 0;
+        if (paddle1.y > canvas.height - paddleHeight) paddle1.y = canvas.height - paddleHeight;
+
+        if (paddle2.y < 0) paddle2.y = 0;
+        if (paddle2.y > canvas.height - paddleHeight) paddle2.y = canvas.height - paddleHeight;
+    });
+
     // Spielfeld zeichnen
     function drawField() {
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "darkgreen"; // Spielfeld dunkelgrün
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Mittellinie
@@ -73,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Paddle bewegen
     function movePaddles() {
+        // Tastatursteuerung
         if (keys.w && paddle1.y > 0) paddle1.y -= 5;
         if (keys.s && paddle1.y < canvas.height - paddleHeight) paddle1.y += 5;
         if (keys.ArrowUp && paddle2.y > 0) paddle2.y -= 5;
