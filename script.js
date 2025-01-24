@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const paddleImage2 = new Image();
     paddleImage2.src = 'paddle2.png';
 
+    paddleImage1.onload = () => console.log('Paddle 1 loaded');
+    paddleImage2.onload = () => console.log('Paddle 2 loaded');
+
     // Paddle positions
     const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
     const paddle2 = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2 };
@@ -27,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Key states
     const keys = { w: false, s: false, ArrowUp: false, ArrowDown: false };
 
-    // Event listeners for key presses
     document.addEventListener('keydown', (event) => {
         if (event.key in keys) keys[event.key] = true;
     });
@@ -37,7 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Draw paddles
     function drawPaddle(paddle, image) {
-        ctx.drawImage(image, paddle.x, paddle.y, paddleWidth, paddleHeight);
+        if (image.complete) {
+            ctx.drawImage(image, paddle.x, paddle.y, paddleWidth, paddleHeight);
+        } else {
+            console.log('Image not loaded:', image.src);
+        }
     }
 
     // Draw ball
@@ -62,10 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        // Wall collision
         if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy *= -1;
 
-        // Paddle collision
         if (
             (ball.x - ball.radius < paddle1.x + paddleWidth &&
                 ball.y > paddle1.y &&
@@ -77,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ball.dx *= -1;
         }
 
-        // Reset ball if it goes out
         if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
@@ -85,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Game loop
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -99,8 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(gameLoop);
     }
 
-    // Start game after images are loaded
-    paddleImage1.onload = paddleImage2.onload = () => {
-        gameLoop();
-    };
+    console.log('Starting game loop');
+    gameLoop();
 });
