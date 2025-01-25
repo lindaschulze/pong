@@ -2,10 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Player Names
-    const player1Name = "Mio";
-    const player2Name = "Mika";
-
     // Canvas dimensions
     canvas.width = 600;
     canvas.height = 400;
@@ -19,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     paddleImage1.src = "paddle1.png";
     paddleImage2.src = "paddle2.png";
 
+    // Load images to calculate proportional widths
     paddleImage1.onload = () => {
         paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
     };
@@ -38,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         radius: 10,
         dx: 3,
         dy: 3,
-        speed: 3,
+        speed: 3, // Ball speed increases with each round
     };
 
     // Scores and rounds
@@ -136,11 +133,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update scoreboard
     function updateScoreboard() {
-        document.getElementById("player1Score").textContent = `${player1Name}: ${player1Score}`;
-        document.getElementById("player2Score").textContent = `${player2Name}: ${player2Score}`;
+        document.getElementById("player1Score").textContent = player1Score;
+        document.getElementById("player2Score").textContent = player2Score;
     }
 
     // Check for round winner
     function checkWinner() {
         if (player1Score >= 5 || player2Score >= 5) {
-           
+            gamePaused = true;
+            const winner = player1Score >= 5 ? "Player 1" : "Player 2";
+            const winnerImage = player1Score >= 5 ? paddleImage1 : paddleImage2;
+
+            // Show winner overlay
+            showWinnerOverlay(winner, winnerImage);
+        }
+    }
+
+    // Show winner overlay
+    function showWinnerOverlay(winner, winnerImage) {
+        const overlay = document.getElementById("winnerOverlay");
+        const winnerText = document.getElementById("winnerText");
+        const winnerImg = document.getElementById("winnerImage");
+        const roundText = document.getElementById("roundText");
+
+        winnerText.textContent = `${winner} wins this round!`;
+        winnerImg.src = winnerImage.src;
+        roundText.textContent = `Next Round: ${roundNumber + 1}`;
+
+        overlay.style.display = "flex";
+    }
+
+    // Start next round
+    function startNextRound() {
+        gamePaused = false;
+        player1Score = 0;
+        player2Score = 0;
+        roundNumber++;
+        ball.speed += 0.5; // Increase ball speed slightly
+        updateScoreboard();
+
+        const overlay = document.getElementById("winnerOverlay");
+        overlay.style.display = "none";
+    }
+
+    // Event listener for next round button
+    document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
+
+    // Game loop
+    function gameLoop() {
+        if (!gamePaused) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMiddleLine();
+
+            drawPaddle(paddle1, paddleImage1, paddle1Width);
+            drawPaddle(paddle2, paddleImage2, paddle2Width);
+
+            drawBall();
+            moveBall();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    updateScoreboard();
+    gameLoop();
+});
