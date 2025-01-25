@@ -5,14 +5,14 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // Spielvariablen
-let player1Y = canvas.height / 2 - 50;
-let player2Y = canvas.height / 2 - 50;
+let mioY = canvas.height / 2 - 50;
+let mikaY = canvas.height / 2 - 50;
 let ballX = canvas.width / 2;
 let ballY = canvas.height / 2;
 let ballSpeedX = 5;
 let ballSpeedY = 5;
-let player1Score = 0;
-let player2Score = 0;
+let mioScore = 0;
+let mikaScore = 0;
 const paddleHeight = 100;
 const paddleWidth = 20;
 
@@ -33,12 +33,12 @@ canvas.addEventListener('touchmove', function (e) {
     let touchMoveY1 = e.touches[0].clientY;
     let deltaY1 = touchMoveY1 - touchStartY1; // Differenz der Bewegungen
 
-    player1Y += deltaY1; // Schläger von Mio bewegen
+    mioY += deltaY1; // Schläger von Mio bewegen
     touchStartY1 = touchMoveY1; // Position aktualisieren
 
     // Begrenzung der Bewegung des Schlägers
-    if (player1Y < 0) player1Y = 0;
-    if (player1Y > canvas.height - paddleHeight) player1Y = canvas.height - paddleHeight;
+    if (mioY < 0) mioY = 0;
+    if (mioY > canvas.height - paddleHeight) mioY = canvas.height - paddleHeight;
 }, false);
 
 // Touch-Event Listener für den rechten Schläger (Mika)
@@ -51,12 +51,12 @@ canvas.addEventListener('touchmove', function (e) {
     let touchMoveY2 = e.touches[1].clientY;
     let deltaY2 = touchMoveY2 - touchStartY2; // Differenz der Bewegungen
 
-    player2Y += deltaY2; // Schläger von Mika bewegen
+    mikaY += deltaY2; // Schläger von Mika bewegen
     touchStartY2 = touchMoveY2; // Position aktualisieren
 
     // Begrenzung der Bewegung des Schlägers
-    if (player2Y < 0) player2Y = 0;
-    if (player2Y > canvas.height - paddleHeight) player2Y = canvas.height - paddleHeight;
+    if (mikaY < 0) mikaY = 0;
+    if (mikaY > canvas.height - paddleHeight) mikaY = canvas.height - paddleHeight;
 }, false);
 
 // Ball-Bewegung und Kollisionserkennung
@@ -70,13 +70,13 @@ function updateBall() {
     }
 
     // Ball-Kollision mit den Schlägern
-    if (ballX < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) {
+    if (ballX < paddleWidth && ballY > mioY && ballY < mioY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
-        player1Score++;
+        mioScore++;
     }
-    if (ballX > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight) {
+    if (ballX > canvas.width - paddleWidth && ballY > mikaY && ballY < mikaY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
-        player2Score++;
+        mikaScore++;
     }
 
     // Ball zurücksetzen, wenn er aus dem Spielfeld geht
@@ -84,15 +84,6 @@ function updateBall() {
         ballX = canvas.width / 2;
         ballY = canvas.height / 2;
         ballSpeedX = -ballSpeedX;
-    }
-
-    // Gewinnertext aktualisieren und Overlay anzeigen
-    if (player1Score >= 10) { // Mio gewinnt bei 10 Punkten
-        document.getElementById('winnerText').innerText = "Mio gewinnt die Runde!";
-        document.getElementById('winnerOverlay').style.display = 'flex';
-    } else if (player2Score >= 10) { // Mika gewinnt bei 10 Punkten
-        document.getElementById('winnerText').innerText = "Mika gewinnt die Runde!";
-        document.getElementById('winnerOverlay').style.display = 'flex';
     }
 }
 
@@ -102,27 +93,5 @@ function draw() {
 
     // Schläger für Mio und Mika
     ctx.fillStyle = "blue";
-    ctx.fillRect(0, player1Y, paddleWidth, paddleHeight); // Linker Schläger
-    ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight); // Rechter Schläger
-
-    // Ball zeichnen
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Punktestand anzeigen
-    ctx.fillStyle = "white";
-    ctx.font = "24px Arial";
-    ctx.fillText("Mio: " + player1Score, 20, 30);
-    ctx.fillText("Mika: " + player2Score, canvas.width - 120, 30);
-}
-
-// Spielaktualisierung
-function gameLoop() {
-    updateBall();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-gameLoop();  // Spiel starten
+    ctx.fillRect(0, mioY, paddleWidth, paddleHeight); // Mio's Schläger
+    ctx.fillRect(canvas.width - pa
