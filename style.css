@@ -22,15 +22,32 @@ body {
 #scoreboard {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     width: 600px;
     margin-bottom: 10px;
     font-size: 20px;
+    background: #222;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid white;
+}
+
+#player1Score, #player2Score {
+    flex: 1;
+    text-align: center;
+}
+
+/* Highlighting the active player (optional) */
+.active {
+    font-weight: bold;
+    text-decoration: underline;
 }
 
 /* Game Canvas */
 #gameCanvas {
     background-color: #006400; /* Dark Green for the field */
     border: 2px solid white;
+    border-radius: 10px;
 }
 
 /* Winner Overlay */
@@ -45,11 +62,18 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    z-index: 10;
 }
 
 #winnerOverlay div {
     text-align: center;
     color: white;
+}
+
+#winnerText {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 #winnerImage {
@@ -65,9 +89,23 @@ body {
     color: black;
     border: none;
     border-radius: 5px;
+    transition: background 0.3s;
 }
 
 #nextRoundButton:hover {
     background: lightgray;
 }
 
+/* Optional: Flash effect for the winner */
+#winnerText.flash {
+    animation: flash 1s infinite;
+}
+
+@keyframes flash {
+    0%, 100% {
+        color: white;
+    }
+    50% {
+        color: yellow;
+    }
+}
