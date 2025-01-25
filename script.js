@@ -8,15 +8,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Paddle properties
     const paddleHeight = 80;
-    const paddleWidth = 20;
+    let paddle1Width, paddle2Width;
+
     const paddleImage1 = new Image();
     const paddleImage2 = new Image();
     paddleImage1.src = "paddle1.png";
     paddleImage2.src = "paddle2.png";
 
+    // Load images to calculate proportional widths
+    paddleImage1.onload = () => {
+        paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
+    };
+    paddleImage2.onload = () => {
+        paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
+    };
+
     // Paddle positions
     const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
-    const paddle2 = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2 };
+    const paddle2 = { x: canvas.width, y: canvas.height / 2 - paddleHeight / 2 };
 
     // Ball properties
     const ball = {
@@ -47,8 +56,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Draw paddles
-    function drawPaddle(paddle, image) {
-        ctx.drawImage(image, paddle.x, paddle.y, paddleWidth, paddleHeight);
+    function drawPaddle(paddle, image, width) {
+        if (width) {
+            ctx.drawImage(image, paddle.x, paddle.y, width, paddleHeight);
+        }
     }
 
     // Draw ball
@@ -83,10 +94,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Bounce off paddles
         if (
-            (ball.x - ball.radius < paddle1.x + paddleWidth &&
+            (ball.x - ball.radius < paddle1.x + paddle1Width &&
                 ball.y > paddle1.y &&
                 ball.y < paddle1.y + paddleHeight) ||
-            (ball.x + ball.radius > paddle2.x &&
+            (ball.x + ball.radius > paddle2.x - paddle2Width &&
                 ball.y > paddle2.y &&
                 ball.y < paddle2.y + paddleHeight)
         ) {
@@ -121,8 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawMiddleLine();
-        drawPaddle(paddle1, paddleImage1);
-        drawPaddle(paddle2, paddleImage2);
+
+        drawPaddle(paddle1, paddleImage1, paddle1Width);
+        drawPaddle(paddle2, paddleImage2, paddle2Width);
+
         drawBall();
         moveBall();
         requestAnimationFrame(gameLoop);
