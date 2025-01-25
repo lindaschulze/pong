@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     paddleImage2.onload = () => {
         paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
+        paddle2.x = canvas.width - paddle2Width; // Ensure the right paddle stays inside the canvas
     };
 
     // Paddle positions
@@ -97,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
             (ball.x - ball.radius < paddle1.x + paddle1Width &&
                 ball.y > paddle1.y &&
                 ball.y < paddle1.y + paddleHeight) ||
-            (ball.x + ball.radius > paddle2.x - paddle2Width &&
+            (ball.x + ball.radius > paddle2.x &&
                 ball.y > paddle2.y &&
                 ball.y < paddle2.y + paddleHeight)
         ) {
