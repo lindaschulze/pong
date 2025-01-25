@@ -29,7 +29,7 @@ body {
 
 /* Game Canvas */
 #gameCanvas {
-    background-color: #006400; /* Dark Green for the field */
+    background-color: #006400; /* Dunkelgrün für das Spielfeld */
     border: 2px solid white;
 }
 
