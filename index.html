@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong Game</title>
@@ -8,22 +7,21 @@
 </head>
 <body>
     <div id="gameContainer">
-        <!-- Scoreboard -->
         <div id="scoreboard">
-            <div id="player1Score">Mio: 0</div>
-            <div id="player2Score">Mika: 0</div>
+            <div>Player 1: <span id="player1Score">0</span></div>
+            <div>Player 2: <span id="player2Score">0</span></div>
         </div>
-        <!-- Game Canvas -->
         <canvas id="gameCanvas"></canvas>
-        <!-- Winner Overlay -->
         <div id="winnerOverlay">
             <div>
-                <h1 id="winnerText">Mio Wins!</h1>
-                <img id="winnerImage" src="" alt="Winner Icon">
+                <h1 id="winnerText"></h1>
+                <img id="winnerImage" alt="Winner">
+                <p id="roundText"></p>
                 <button id="nextRoundButton">Next Round</button>
             </div>
         </div>
     </div>
     <script src="script.js"></script>
-</body>
-</html>
+
+
+</body></html>
