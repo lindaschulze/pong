@@ -1,0 +1,36 @@
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+}
+
+#scoreboard {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+canvas {
+    border: 2px solid white;
+    background-color: darkgreen;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 4 / 3;
+    position: relative;
+}
+
+/* Mittellinie */
+canvas::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: white;
+    left: 50%;
+    transform: translateX(-50%);
+}
