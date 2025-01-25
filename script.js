@@ -2,19 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Responsive canvas size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    // Canvas dimensions
+    canvas.width = 600;
+    canvas.height = 400;
 
     // Paddle properties
-    const paddleHeight = 100;
-    const paddleWidth = paddleHeight / 2; // Proportional width
-    let paddleAspectRatio = 1;
-
+    const paddleHeight = 80;
+    const paddleWidth = 20;
     const paddleImage1 = new Image();
-    paddleImage1.src = "paddle1.png";
-
     const paddleImage2 = new Image();
+    paddleImage1.src = "paddle1.png";
     paddleImage2.src = "paddle2.png";
 
     // Paddle positions
@@ -26,27 +23,24 @@ document.addEventListener("DOMContentLoaded", () => {
         x: canvas.width / 2,
         y: canvas.height / 2,
         radius: 10,
-        dx: 2,
-        dy: 2,
+        dx: 3,
+        dy: 3,
     };
 
     // Scores
     let player1Score = 0;
     let player2Score = 0;
 
-    // Touch control
+    // Touch controls
     canvas.addEventListener("touchmove", (event) => {
         event.preventDefault();
-
         for (let touch of event.touches) {
             const touchX = touch.clientX - canvas.offsetLeft;
             const touchY = touch.clientY - canvas.offsetTop;
 
             if (touchX < canvas.width / 2) {
-                // Move left paddle
                 paddle1.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
             } else {
-                // Move right paddle
                 paddle2.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
             }
         }
@@ -66,15 +60,28 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
+    // Draw middle line
+    function drawMiddleLine() {
+        ctx.beginPath();
+        ctx.setLineDash([10, 10]);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+        ctx.closePath();
+    }
+
     // Move ball
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+        // Bounce off top and bottom walls
+        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
             ball.dy *= -1;
         }
 
+        // Bounce off paddles
         if (
             (ball.x - ball.radius < paddle1.x + paddleWidth &&
                 ball.y > paddle1.y &&
@@ -86,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ball.dx *= -1;
         }
 
+        // Scoring
         if (ball.x - ball.radius < 0) {
             player2Score++;
             resetBall();
@@ -95,12 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Reset ball position
+    // Reset ball
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
         ball.dx *= -1;
-
         updateScoreboard();
     }
 
@@ -113,11 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Game loop
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        drawMiddleLine();
         drawPaddle(paddle1, paddleImage1);
         drawPaddle(paddle2, paddleImage2);
         drawBall();
-
         moveBall();
         requestAnimationFrame(gameLoop);
     }
@@ -125,4 +131,3 @@ document.addEventListener("DOMContentLoaded", () => {
     updateScoreboard();
     gameLoop();
 });
-
