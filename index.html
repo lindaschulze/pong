@@ -7,10 +7,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="scoreboard">
-        Player 1: <span id="player1Score">0</span> | Player 2: <span id="player2Score">0</span>
+    <div id="gameContainer">
+        <div id="scoreboard">
+            <div>Player 1: <span id="player1Score">0</span></div>
+            <div>Player 2: <span id="player2Score">0</span></div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="winnerOverlay">
+            <div>
+                <h1 id="winnerText"></h1>
+                <img id="winnerImage" alt="Winner">
+                <p id="roundText"></p>
+                <button id="nextRoundButton">Next Round</button>
+            </div>
+        </div>
     </div>
-    <canvas id="gameCanvas"></canvas>
     <script src="script.js"></script>
 </body>
 </html>
