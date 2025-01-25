@@ -85,6 +85,15 @@ function updateBall() {
         ballY = canvas.height / 2;
         ballSpeedX = -ballSpeedX;
     }
+
+    // Gewinnertext aktualisieren und Overlay anzeigen
+    if (player1Score >= 10) { // Mio gewinnt bei 10 Punkten
+        document.getElementById('winnerText').innerText = "Mio gewinnt die Runde!";
+        document.getElementById('winnerOverlay').style.display = 'flex';
+    } else if (player2Score >= 10) { // Mika gewinnt bei 10 Punkten
+        document.getElementById('winnerText').innerText = "Mika gewinnt die Runde!";
+        document.getElementById('winnerOverlay').style.display = 'flex';
+    }
 }
 
 // Zeichnen der Schläger, des Balls und des Punktestands
@@ -93,8 +102,8 @@ function draw() {
 
     // Schläger für Mio und Mika
     ctx.fillStyle = "blue";
-    ctx.fillRect(0, player1Y, paddleWidth, paddleHeight); // Mio's Schläger
-    ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight); // Mika's Schläger
+    ctx.fillRect(0, player1Y, paddleWidth, paddleHeight); // Linker Schläger
+    ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight); // Rechter Schläger
 
     // Ball zeichnen
     ctx.fillStyle = "red";
@@ -103,7 +112,7 @@ function draw() {
     ctx.fill();
 
     // Punktestand anzeigen
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.font = "24px Arial";
     ctx.fillText("Mio: " + player1Score, 20, 30);
     ctx.fillText("Mika: " + player2Score, canvas.width - 120, 30);
