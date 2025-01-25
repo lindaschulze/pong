@@ -1,114 +1,101 @@
-// Canvas setup
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-let canvasWidth = 600;
-let canvasHeight = 400;
+// Resize canvas dynamically
+function resizeCanvas() {
+    const aspectRatio = 4 / 3; // Maintain aspect ratio of the game
+    canvas.width = window.innerWidth;
+    canvas.height = canvas.width / aspectRatio;
 
-canvas.width = canvasWidth;
-canvas.height = canvasHeight;
-
-// Paddle and Ball settings
-const paddleHeight = 100;
-let paddleWidth = 10;
-let leftPaddle = { x: 0, y: canvasHeight / 2 - paddleHeight / 2, image: new Image() };
-let rightPaddle = { x: canvasWidth - paddleWidth, y: canvasHeight / 2 - paddleHeight / 2, image: new Image() };
-leftPaddle.image.src = "paddle1.png";
-rightPaddle.image.src = "paddle2.png";
-
-let ball = { x: canvasWidth / 2, y: canvasHeight / 2, radius: 10, dx: 3, dy: 3 };
-
-let leftScore = 0;
-let rightScore = 0;
-
-// Event listeners for paddle control
-let touchY = null;
-
-window.addEventListener("touchstart", (e) => {
-    const touch = e.touches[0];
-    if (touch.clientX < canvasWidth / 2) {
-        touchY = touch.clientY;
-        leftPaddle.y = touchY - paddleHeight / 2;
-    } else {
-        touchY = touch.clientY;
-        rightPaddle.y = touchY - paddleHeight / 2;
+    if (canvas.height > window.innerHeight) {
+        canvas.height = window.innerHeight;
+        canvas.width = canvas.height * aspectRatio;
     }
-});
 
-window.addEventListener("touchmove", (e) => {
-    const touch = e.touches[0];
-    if (touch.clientX < canvasWidth / 2) {
-        touchY = touch.clientY;
-        leftPaddle.y = Math.max(0, Math.min(canvasHeight - paddleHeight, touchY - paddleHeight / 2));
-    } else {
-        touchY = touch.clientY;
-        rightPaddle.y = Math.max(0, Math.min(canvasHeight - paddleHeight, touchY - paddleHeight / 2));
-    }
-});
-
-// Draw paddles and ball
-function drawPaddle(paddle) {
-    ctx.drawImage(paddle.image, paddle.x, paddle.y, paddleWidth, paddleHeight);
+    // Reinitialize paddles and ball positions after resizing
+    initializeGame();
 }
 
-function drawBall() {
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Game variables
+let paddleWidth = 10;
+let paddleHeight = 100;
+let ballSize = 10;
+let leftPaddle = {
+    x: 0,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    dy: 0
+};
+let rightPaddle = {
+    x: canvas.width - paddleWidth,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    dy: 0
+};
+let ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    dx: 2,
+    dy: -2,
+    size: ballSize
+};
+
+// Initialize game elements
+function initializeGame() {
+    leftPaddle.y = canvas.height / 2 - paddleHeight / 2;
+    rightPaddle.y = canvas.height / 2 - paddleHeight / 2;
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+}
+
+// Game loop
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw paddles
+    ctx.fillStyle = 'white';
+    ctx.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
+    ctx.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
+
+    // Draw ball
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "white";
+    ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
     ctx.fill();
     ctx.closePath();
-}
 
-// Draw game elements
-function drawGame() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    drawPaddle(leftPaddle);
-    drawPaddle(rightPaddle);
-    drawBall();
-    requestAnimationFrame(updateGame);
-}
-
-// Game logic
-function updateGame() {
+    // Move ball
     ball.x += ball.dx;
     ball.y += ball.dy;
 
-    if (ball.y + ball.radius > canvasHeight || ball.y - ball.radius < 0) {
+    // Ball collision with top and bottom walls
+    if (ball.y - ball.size < 0 || ball.y + ball.size > canvas.height) {
         ball.dy *= -1;
     }
 
-    if (ball.x - ball.radius < leftPaddle.x + paddleWidth &&
-        ball.y > leftPaddle.y &&
-        ball.y < leftPaddle.y + paddleHeight) {
+    // Ball collision with paddles
+    if (
+        (ball.x - ball.size < leftPaddle.x + leftPaddle.width &&
+            ball.y > leftPaddle.y &&
+            ball.y < leftPaddle.y + leftPaddle.height) ||
+        (ball.x + ball.size > rightPaddle.x &&
+            ball.y > rightPaddle.y &&
+            ball.y < rightPaddle.y + rightPaddle.height)
+    ) {
         ball.dx *= -1;
     }
 
-    if (ball.x + ball.radius > rightPaddle.x &&
-        ball.y > rightPaddle.y &&
-        ball.y < rightPaddle.y + paddleHeight) {
-        ball.dx *= -1;
+    // Ball out of bounds
+    if (ball.x + ball.size < 0 || ball.x - ball.size > canvas.width) {
+        initializeGame();
     }
 
-    if (ball.x - ball.radius < 0) {
-        rightScore++;
-        resetBall();
-    } else if (ball.x + ball.radius > canvasWidth) {
-        leftScore++;
-        resetBall();
-    }
-
-    document.getElementById("leftScore").textContent = leftScore;
-    document.getElementById("rightScore").textContent = rightScore;
-
-    drawGame();
+    requestAnimationFrame(draw);
 }
 
-// Reset ball
-function resetBall() {
-    ball.x = canvasWidth / 2;
-    ball.y = canvasHeight / 2;
-    ball.dx *= -1;
-}
-
-// Start the game
-drawGame();
+draw();
