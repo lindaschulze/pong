@@ -1,95 +1,14 @@
-/* General Reset */
 body {
     margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    background-color: darkgreen;
+}
+
+canvas {
+    display: block;
     background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-}
-
-#gameContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 100vw;
-    max-height: 100vh;
-}
-
-/* Scoreboard */
-#scoreboard {
-    display: flex;
-    justify-content: space-between;
-    width: 90%;
-    max-width: 600px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    text-align: center;
-}
-
-/* Game Canvas */
-#gameCanvas {
-    background-color: #006400; /* Dark Green for the field */
     border: 2px solid white;
-    width: 90vw;
-    max-width: 600px;
-    aspect-ratio: 3 / 2; /* Verhältnis bleibt bei 3:2 */
-}
-
-/* Winner Overlay */
-#winnerOverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-#winnerOverlay div {
-    text-align: center;
-    color: white;
-}
-
-#winnerImage {
-    max-width: 50%;
-    margin: 10px 0;
-}
-
-#nextRoundButton {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 5px;
-}
-
-#nextRoundButton:hover {
-    background: lightgray;
-}
-
-/* Media Queries for Mobile */
-@media (max-width: 768px) {
-    #scoreboard {
-        font-size: 14px;
-    }
-
-    #winnerImage {
-        max-width: 80%;
-    }
-
-    #nextRoundButton {
-        font-size: 14px;
-    }
 }
