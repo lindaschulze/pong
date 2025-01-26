@@ -2,12 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Canvas dimensions
-    canvas.width = 600;
-    canvas.height = 400;
+    // Responsive canvas setup
+    const setCanvasSize = () => {
+        canvas.width = window.innerWidth * 0.9; // 90% of screen width
+        canvas.height = window.innerHeight * 0.6; // 60% of screen height
+    };
+    setCanvasSize();
+    window.addEventListener("resize", setCanvasSize);
 
     // Paddle properties
-    const paddleHeight = 80;
+    const paddleHeight = canvas.height * 0.2;
     let paddle1Width, paddle2Width;
 
     const paddleImage1 = new Image();
@@ -15,13 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
     paddleImage1.src = "paddle1.png";
     paddleImage2.src = "paddle2.png";
 
-    // Load images to calculate proportional widths
     paddleImage1.onload = () => {
         paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
     };
     paddleImage2.onload = () => {
         paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
-        paddle2.x = canvas.width - paddle2Width; // Ensure the right paddle stays inside the canvas
+        paddle2.x = canvas.width - paddle2Width;
     };
 
     // Paddle positions
@@ -32,18 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
-        radius: 10,
+        radius: canvas.width * 0.015,
         dx: 3,
         dy: 3,
-        speed: 3, // Ball speed increases with each round
+        speed: 3,
     };
 
     // Scores and rounds
     let player1Score = 0;
     let player2Score = 0;
     let roundNumber = 1;
-
-    // Game state
     let gamePaused = false;
 
     // Touch controls
@@ -93,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        // Bounce off top and bottom walls
+        // Bounce off walls
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
             ball.dy *= -1;
         }
@@ -144,7 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const winner = player1Score >= 5 ? "Mio" : "Mika";
             const winnerImage = player1Score >= 5 ? paddleImage1 : paddleImage2;
 
-            // Show winner overlay
             showWinnerOverlay(winner, winnerImage);
         }
     }
@@ -159,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         winnerText.textContent = `${winner} gewinnt diese Runde!`;
         winnerImg.src = winnerImage.src;
         roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
-
         overlay.style.display = "flex";
     }
 
@@ -169,25 +168,21 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        ball.speed += 0.5; // Increase ball speed slightly
+        ball.speed += 0.5;
         updateScoreboard();
 
         const overlay = document.getElementById("winnerOverlay");
         overlay.style.display = "none";
     }
 
-    // Event listener for next round button
     document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
 
-    // Game loop
     function gameLoop() {
         if (!gamePaused) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawMiddleLine();
-
             drawPaddle(paddle1, paddleImage1, paddle1Width);
             drawPaddle(paddle2, paddleImage2, paddle2Width);
-
             drawBall();
             moveBall();
         }
