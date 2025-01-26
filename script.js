@@ -156,9 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const winnerImg = document.getElementById("winnerImage");
         const roundText = document.getElementById("roundText");
 
-        winnerText.textContent = ${winner} gewinnt diese Runde!;
+        winnerText.textContent = `${winner} gewinnt diese Runde!`;
         winnerImg.src = winnerImage.src;
-        roundText.textContent = Nächste Runde: ${roundNumber + 1};
+        roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
 
         overlay.style.display = "flex";
     }
