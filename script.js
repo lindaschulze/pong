@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function checkWinner() {
         if (player1Score >= 5 || player2Score >= 5) {
             gamePaused = true;
-            const winner = player1Score >= 5 ? "Player 1" : "Player 2";
+            const winner = player1Score >= 5 ? "Mio" : "Mika";
             const winnerImage = player1Score >= 5 ? paddleImage1 : paddleImage2;
 
             // Show winner overlay
@@ -156,9 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const winnerImg = document.getElementById("winnerImage");
         const roundText = document.getElementById("roundText");
 
-        winnerText.textContent = `${winner} wins this round!`;
+        winnerText.textContent = `${winner} gewinnt diese Runde!`;
         winnerImg.src = winnerImage.src;
-        roundText.textContent = `Next Round: ${roundNumber + 1}`;
+        roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
 
         overlay.style.display = "flex";
     }
