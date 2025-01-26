@@ -1,4 +1,3 @@
-/* General Reset */
 body {
     margin: 0;
     padding: 0;
@@ -16,24 +15,23 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
 }
 
-/* Scoreboard */
 #scoreboard {
     display: flex;
     justify-content: space-between;
-    width: 600px;
+    width: 90%;
     margin-bottom: 10px;
-    font-size: 20px;
+    font-size: 1.5rem;
 }
 
-/* Game Canvas */
 #gameCanvas {
-    background-color: #006400; /* Dark Green for the field */
+    background-color: #006400;
     border: 2px solid white;
+    width: 90%;
 }
 
-/* Winner Overlay */
 #winnerOverlay {
     display: none;
     position: fixed;
@@ -59,7 +57,7 @@ body {
 
 #nextRoundButton {
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 1rem;
     cursor: pointer;
     background: white;
     color: black;
