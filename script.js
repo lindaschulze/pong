@@ -2,17 +2,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
+    // Fixed aspect ratio (4:3)
+    const aspectRatio = 4 / 3;
+    let canvasWidth, canvasHeight;
+
     // Paddle and Ball properties
-    const paddleHeight = 100;
-    let paddle1Width, paddle2Width, canvasWidth, canvasHeight;
+    const paddleHeightRatio = 0.2; // 20% of canvas height
+    const ballRadiusRatio = 0.015; // 1.5% of canvas width
+    let paddle1Width, paddle2Width, paddleHeight, ballRadius;
 
     const paddleImage1 = new Image();
     const paddleImage2 = new Image();
     paddleImage1.src = "paddle1.png";
     paddleImage2.src = "paddle2.png";
 
-    const paddle1 = { x: 0, y: 0, width: 0, height: paddleHeight };
-    const paddle2 = { x: 0, y: 0, width: 0, height: paddleHeight };
+    const paddle1 = { x: 0, y: 0, width: 0, height: 0 };
+    const paddle2 = { x: 0, y: 0, width: 0, height: 0 };
     const ball = { x: 0, y: 0, radius: 0, dx: 3, dy: 3, speed: 3 };
 
     let player1Score = 0;
@@ -22,17 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to resize canvas and reset game elements
     const setCanvasSize = () => {
-        canvas.width = window.innerWidth * 0.9; // 90% of screen width
-        canvas.height = window.innerHeight * 0.6; // 60% of screen height
-        canvasWidth = canvas.width;
-        canvasHeight = canvas.height;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
 
-        // Paddle dimensions and positions
-        paddle1.height = canvasHeight * 0.2;
-        paddle2.height = canvasHeight * 0.2;
+        if (windowWidth / windowHeight > aspectRatio) {
+            canvasHeight = windowHeight * 0.9; // 90% of viewport height
+            canvasWidth = canvasHeight * aspectRatio;
+        } else {
+            canvasWidth = windowWidth * 0.9; // 90% of viewport width
+            canvasHeight = canvasWidth / aspectRatio;
+        }
 
-        paddle1Width = (paddleImage1.width / paddleImage1.height) * paddle1.height;
-        paddle2Width = (paddleImage2.width / paddleImage2.height) * paddle2.height;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        // Paddle dimensions
+        paddleHeight = canvasHeight * paddleHeightRatio;
+        paddle1.height = paddle2.height = paddleHeight;
+
+        paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
+        paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
 
         paddle1.width = paddle1Width;
         paddle2.width = paddle2Width;
@@ -43,16 +57,18 @@ document.addEventListener("DOMContentLoaded", () => {
         paddle2.x = canvasWidth - paddle2Width;
         paddle2.y = canvasHeight / 2 - paddle2.height / 2;
 
-        // Ball reset
-        ball.radius = canvasWidth * 0.015;
+        // Ball dimensions
+        ballRadius = canvasWidth * ballRadiusRatio;
+        ball.radius = ballRadius;
+
         resetBall();
     };
 
     const resetBall = () => {
         ball.x = canvasWidth / 2;
         ball.y = canvasHeight / 2;
-        ball.dx = ball.speed * (ball.dx > 0 ? 1 : -1);
-        ball.dy = ball.speed * (ball.dy > 0 ? 1 : -1);
+        ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
+        ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1);
     };
 
     window.addEventListener("resize", setCanvasSize);
@@ -107,9 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Scoring
         if (ball.x - ball.radius < 0) {
             player2Score++;
+            updateScoreboard();
             resetBall();
         } else if (ball.x + ball.radius > canvasWidth) {
             player1Score++;
+            updateScoreboard();
             resetBall();
         }
 
