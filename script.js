@@ -3,11 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = canvas.getContext("2d");
 
     // Canvas dimensions
-    canvas.width = 600;
-    canvas.height = 400;
+    const canvasRatio = 3 / 2; // 3:2 aspect ratio
+    function resizeCanvas() {
+        const width = Math.min(window.innerWidth * 0.9, 600);
+        canvas.width = width;
+        canvas.height = width / canvasRatio;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
     // Paddle properties
-    const paddleHeight = 80;
+    const paddleHeight = canvas.height * 0.2; // 20% of canvas height
     let paddle1Width, paddle2Width;
 
     const paddleImage1 = new Image();
@@ -21,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     paddleImage2.onload = () => {
         paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
-        paddle2.x = canvas.width - paddle2Width; // Ensure the right paddle stays inside the canvas
+        paddle2.x = canvas.width - paddle2Width; // Adjust right paddle position
     };
 
     // Paddle positions
@@ -32,10 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
-        radius: 10,
-        dx: 3,
-        dy: 3,
-        speed: 3, // Ball speed increases with each round
+        radius: canvas.width * 0.02, // 2% of canvas width
+        dx: canvas.width * 0.005,
+        dy: canvas.width * 0.005,
     };
 
     // Scores and rounds
@@ -126,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = ball.speed * (ball.dx > 0 ? 1 : -1);
-        ball.dy = ball.speed * (ball.dy > 0 ? 1 : -1);
+        ball.dx = Math.abs(ball.dx) * (ball.dx > 0 ? 1 : -1);
+        ball.dy = Math.abs(ball.dy) * (ball.dy > 0 ? 1 : -1);
         updateScoreboard();
     }
 
@@ -169,7 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        ball.speed += 0.5; // Increase ball speed slightly
+        ball.dx *= 1.1; // Increase speed slightly
+        ball.dy *= 1.1;
         updateScoreboard();
 
         const overlay = document.getElementById("winnerOverlay");
