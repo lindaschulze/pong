@@ -1,77 +1,111 @@
-/* General Reset */
-body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-}
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-#gameContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+    // Seitenverhältnis beibehalten
+    const aspectRatio = 3 / 2; // Entspricht dem bisherigen Verhältnis
+    function resizeCanvas() {
+        let width = window.innerWidth * 0.9;
+        let height = width / aspectRatio;
+        
+        if (height > window.innerHeight * 0.8) {
+            height = window.innerHeight * 0.8;
+            width = height * aspectRatio;
+        }
 
-/* Scoreboard */
-#scoreboard {
-    display: flex;
-    justify-content: space-between;
-    width: 80vw;
-    max-width: 600px;
-    margin-bottom: 10px;
-    font-size: 20px;
-}
+        canvas.width = width;
+        canvas.height = height;
+    }
+    
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
-/* Game Canvas */
-#gameCanvas {
-    background-color: #006400; /* Dark Green for the field */
-    border: 2px solid white;
-    width: 90vw;
-    height: 60vh;
-    max-width: 800px;
-    max-height: 600px;
-}
+    // Paddle Eigenschaften
+    const paddleHeight = canvas.height * 0.2;
+    let paddle1Width, paddle2Width;
 
-/* Winner Overlay */
-#winnerOverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
+    const paddleImage1 = new Image();
+    const paddleImage2 = new Image();
+    paddleImage1.src = "paddle1.png";
+    paddleImage2.src = "paddle2.png";
 
-#winnerOverlay div {
-    text-align: center;
-    color: white;
-}
+    // Positionen
+    const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
+    const paddle2 = { x: canvas.width, y: canvas.height / 2 - paddleHeight / 2 };
+    
+    paddleImage1.onload = () => {
+        paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
+    };
+    paddleImage2.onload = () => {
+        paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
+        paddle2.x = canvas.width - paddle2Width;
+    };
 
-#winnerImage {
-    max-width: 200px;
-    margin: 10px 0;
-}
+    // Ball Eigenschaften
+    const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: canvas.width * 0.02, dx: 3, dy: 3 };
 
-#nextRoundButton {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 5px;
-}
+    // Touch-Steuerung
+    canvas.addEventListener("touchmove", (event) => {
+        event.preventDefault();
+        for (let touch of event.touches) {
+            const touchX = touch.clientX - canvas.offsetLeft;
+            const touchY = touch.clientY - canvas.offsetTop;
+            
+            if (touchX < canvas.width / 2) {
+                paddle1.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
+            } else {
+                paddle2.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
+            }
+        }
+    });
 
-#nextRoundButton:hover {
-    background: lightgray;
-}
+    function drawPaddle(paddle, image, width) {
+        if (width) {
+            ctx.drawImage(image, paddle.x, paddle.y, width, paddleHeight);
+        }
+    }
+
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawMiddleLine() {
+        ctx.beginPath();
+        ctx.setLineDash([10, 10]);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    function moveBall() {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+            ball.dy *= -1;
+        }
+
+        if ((ball.x - ball.radius < paddle1.x + paddle1Width && ball.y > paddle1.y && ball.y < paddle1.y + paddleHeight) ||
+            (ball.x + ball.radius > paddle2.x && ball.y > paddle2.y && ball.y < paddle2.y + paddleHeight)) {
+            ball.dx *= -1;
+        }
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMiddleLine();
+        drawPaddle(paddle1, paddleImage1, paddle1Width);
+        drawPaddle(paddle2, paddleImage2, paddle2Width);
+        drawBall();
+        moveBall();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+});
