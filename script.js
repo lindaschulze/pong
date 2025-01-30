@@ -2,65 +2,55 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Canvas dimensions
-    const canvasRatio = 3 / 2; // 3:2 aspect ratio
+    let canvasWidth, canvasHeight;
     function resizeCanvas() {
-        const width = Math.min(window.innerWidth * 0.9, 600);
-        canvas.width = width;
-        canvas.height = width / canvasRatio;
-
-        // Update paddle and ball positions proportionally
-        const paddleHeight = canvas.height * 0.2;
-        paddle1.height = paddle2.height = paddleHeight;
-        paddle1.width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
-        paddle2.width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
-
-        paddle1.y = Math.min(paddle1.y, canvas.height - paddle1.height);
-        paddle2.y = Math.min(paddle2.y, canvas.height - paddle2.height);
-        paddle2.x = canvas.width - paddle2.width;
-
-        ball.radius = canvas.width * 0.02;
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
+        if (window.innerWidth > window.innerHeight) {
+            // Querformat (Landscape)
+            canvasWidth = window.innerWidth * 0.9;
+            canvasHeight = window.innerHeight * 0.9;
+        } else {
+            // Hochformat (Portrait)
+            canvasWidth = window.innerWidth * 0.95;
+            canvasHeight = window.innerHeight * 0.7;
+        }
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        
+        updatePositions();
     }
     window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
+    resizeCanvas(); // Initial aufrufen
 
-    // Paddle properties
-    const paddle1 = { x: 0, y: 0, width: 0, height: 0 };
-    const paddle2 = { x: 0, y: 0, width: 0, height: 0 };
+    // Paddle Eigenschaften
+    const paddle1 = { width: 10, height: canvasHeight * 0.2, x: 0, y: canvasHeight / 2 - (canvasHeight * 0.2) / 2 };
+    const paddle2 = { width: 10, height: canvasHeight * 0.2, x: canvasWidth - 10, y: canvasHeight / 2 - (canvasHeight * 0.2) / 2 };
 
-    const paddleImage1 = new Image();
-    const paddleImage2 = new Image();
-    paddleImage1.src = "paddle1.png";
-    paddleImage2.src = "paddle2.png";
-
-    paddleImage1.onload = () => {
-        resizeCanvas(); // Ensure paddles are resized after image load
-    };
-    paddleImage2.onload = () => {
-        resizeCanvas();
-    };
-
-    // Ball properties
+    // Ball
     const ball = {
-        x: 0,
-        y: 0,
-        radius: 0,
+        x: canvasWidth / 2,
+        y: canvasHeight / 2,
+        radius: canvasWidth * 0.02,
         dx: 5,
-        dy: 5,
+        dy: 5
     };
 
-    // Scores
-    let player1Score = 0;
-    let player2Score = 0;
+    function updatePositions() {
+        paddle1.height = canvasHeight * 0.2;
+        paddle2.height = canvasHeight * 0.2;
+        paddle1.y = canvasHeight / 2 - paddle1.height / 2;
+        paddle2.y = canvasHeight / 2 - paddle2.height / 2;
+        paddle2.x = canvasWidth - paddle2.width;
 
-    // Draw paddles
-    function drawPaddle(paddle, image) {
-        ctx.drawImage(image, paddle.x, paddle.y, paddle.width, paddle.height);
+        ball.radius = canvasWidth * 0.02;
+        ball.x = canvasWidth / 2;
+        ball.y = canvasHeight / 2;
     }
 
-    // Draw ball
+    function drawPaddle(paddle) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    }
+
     function drawBall() {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -69,28 +59,24 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Draw middle line
     function drawMiddleLine() {
         ctx.beginPath();
         ctx.setLineDash([10, 10]);
-        ctx.moveTo(canvas.width / 2, 0);
-        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.moveTo(canvasWidth / 2, 0);
+        ctx.lineTo(canvasWidth / 2, canvasHeight);
         ctx.strokeStyle = "white";
         ctx.stroke();
         ctx.closePath();
     }
 
-    // Move ball
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        // Bounce off top and bottom walls
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvasHeight) {
             ball.dy *= -1;
         }
 
-        // Bounce off paddles
         if (
             (ball.x - ball.radius < paddle1.x + paddle1.width &&
                 ball.y > paddle1.y &&
@@ -102,45 +88,29 @@ document.addEventListener("DOMContentLoaded", () => {
             ball.dx *= -1;
         }
 
-        // Scoring
         if (ball.x - ball.radius < 0) {
-            player2Score++;
             resetBall();
-        } else if (ball.x + ball.radius > canvas.width) {
-            player1Score++;
+        } else if (ball.x + ball.radius > canvasWidth) {
             resetBall();
         }
     }
 
-    // Reset ball
     function resetBall() {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        ball.dx = canvas.width * 0.005;
-        ball.dy = canvas.width * 0.005;
+        ball.x = canvasWidth / 2;
+        ball.y = canvasHeight / 2;
+        ball.dx = canvasWidth * 0.005;
+        ball.dy = canvasHeight * 0.005;
     }
 
-    // Update scoreboard
-    function updateScoreboard() {
-        document.getElementById("player1Score").textContent = player1Score;
-        document.getElementById("player2Score").textContent = player2Score;
-    }
-
-    // Game loop
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         drawMiddleLine();
-        drawPaddle(paddle1, paddleImage1);
-        drawPaddle(paddle2, paddleImage2);
+        drawPaddle(paddle1);
+        drawPaddle(paddle2);
         drawBall();
         moveBall();
-
         requestAnimationFrame(gameLoop);
     }
 
-    // Initialize game
-    resetBall();
-    updateScoreboard();
     gameLoop();
 });
