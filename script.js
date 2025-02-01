@@ -6,10 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvasRatio = 3 / 2; // 3:2 aspect ratio
     function resizeCanvas() {
         const container = document.getElementById("gameContainer");
-        const containerWidth = container.offsetWidth;
-        const containerHeight = container.offsetHeight;
-        canvas.width = containerWidth;
-        canvas.height = containerHeight;
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+        console.log("Canvas resized", canvas.width, canvas.height);
         updateGameElements();
     }
     resizeCanvas();
@@ -45,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let gamePaused = false;
 
     function updateGameElements() {
+        console.log("Updating game elements");
         paddleHeight = canvas.height * 0.2;
         paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
         paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
@@ -78,12 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Draw functions
     function drawPaddle(paddle, image, width) {
-        if (width) {
+        console.log("Drawing paddle", paddle, width);
+        if (width && image.complete) {
             ctx.drawImage(image, paddle.x, paddle.y, width, paddleHeight);
         }
     }
 
     function drawBall() {
+        console.log("Drawing ball", ball);
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         ctx.fillStyle = "white";
@@ -192,6 +194,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Event listener for next round button
     document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
 
+    function checkGameState() {
+        console.log("Game state:");
+        console.log("Paddle1:", paddle1);
+        console.log("Paddle2:", paddle2);
+        console.log("Ball:", ball);
+        console.log("Canvas size:", canvas.width, canvas.height);
+    }
+
     // Game loop
     function gameLoop() {
         if (!gamePaused) {
@@ -203,14 +213,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             drawBall();
             moveBall();
+            
+            checkGameState(); // Fügen Sie diese Zeile hinzu
         }
         requestAnimationFrame(gameLoop);
     }
 
     // Initialize game
-    paddleImage2.onload = () => {
-        updateGameElements();
-        updateScoreboard();
-        gameLoop();
-    };
+    let imagesLoaded = 0;
+    function imageLoaded() {
+        imagesLoaded++;
+        if (imagesLoaded === 2) {
+            console.log("Both images loaded");
+            updateGameElements();
+            updateScoreboard();
+            gameLoop();
+        }
+    }
+
+    paddleImage1.onload = imageLoaded;
+    paddleImage2.onload = imageLoaded;
 });
