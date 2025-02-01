@@ -1,5 +1,5 @@
 :root {
-    --game-width: min(90vw, 600px);
+    --game-width: min(90vw, 90vh * 1.5, 600px);
     --game-height: calc(var(--game-width) / 1.5);
     --font-size: calc(var(--game-width) * 0.033);
 }
@@ -22,6 +22,7 @@ body {
     flex-direction: column;
     align-items: center;
     width: var(--game-width);
+    height: var(--game-height);
 }
 
 #scoreboard {
@@ -34,7 +35,7 @@ body {
 
 #gameCanvas {
     width: 100%;
-    height: var(--game-height);
+    height: 100%;
     background-color: #006400;
     border: 2px solid white;
 }
@@ -77,8 +78,3 @@ body {
     background: lightgray;
 }
 
-@media (max-width: 600px) {
-    :root {
-        --game-width: 95vw;
-    }
-}
