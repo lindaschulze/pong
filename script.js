@@ -5,9 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Canvas dimensions
     const canvasRatio = 3 / 2; // 3:2 aspect ratio
     function resizeCanvas() {
-        const containerWidth = document.getElementById("gameContainer").offsetWidth;
+        const container = document.getElementById("gameContainer");
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
         canvas.width = containerWidth;
-        canvas.height = containerWidth / canvasRatio;
+        canvas.height = containerHeight;
         updateGameElements();
     }
     resizeCanvas();
