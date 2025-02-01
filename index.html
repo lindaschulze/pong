@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mioka Pong</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="gameContainer">
         <div id="scoreboard">
-            <div>Mio: <span id="player1Score">0</span></div>
-            <div>Mika: <span id="player2Score">0</span></div>
+            <div class="score">Mio: <span id="player1Score">0</span></div>
+            <div class="score">Mika: <span id="player2Score">0</span></div>
         </div>
         <canvas id="gameCanvas"></canvas>
         <div id="winnerOverlay">
-            <div>
+            <div class="winner-content">
                 <h1 id="winnerText"></h1>
-                <img id="winnerImage" alt="Winner">
+                <img id="winnerImage" alt="Gewinner">
                 <p id="roundText"></p>
                 <button id="nextRoundButton">Nächste Runde</button>
             </div>
