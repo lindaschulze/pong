@@ -1,24 +1,72 @@
+/* General Reset */
 body {
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #282c34;
     height: 100vh;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
     overflow: hidden;
 }
 
-.game-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-canvas {
-    display: block;
+/* Scoreboard */
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 600px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+/* Game Canvas */
+#gameCanvas {
+    background-color: #006400; /* Dark Green for the field */
+    border: 2px solid white;
+}
+
+/* Winner Overlay */
+#winnerOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#winnerOverlay div {
+    text-align: center;
+    color: white;
+}
+
+#winnerImage {
+    max-width: 200px;
+    margin: 10px 0;
+}
+
+#nextRoundButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 5px;
+}
+
+#nextRoundButton:hover {
+    background: lightgray;
 }
