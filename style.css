@@ -1,22 +1,84 @@
-body, html {
+:root {
+    --game-width: min(90vw, 600px);
+    --game-height: calc(var(--game-width) / 1.5);
+    --font-size: calc(var(--game-width) * 0.033);
+}
+
+body {
     margin: 0;
     padding: 0;
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: black; /* Ensure the background color is set */
+    min-height: 100vh;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
 #gameContainer {
-    width: 100%;
-    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: var(--game-width);
 }
 
-canvas {
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
     width: 100%;
-    height: auto;
+    margin-bottom: 10px;
+    font-size: var(--font-size);
+}
+
+#gameCanvas {
+    width: 100%;
+    height: var(--game-height);
+    background-color: #006400;
+    border: 2px solid white;
+}
+
+#winnerOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.winner-content {
+    text-align: center;
+    color: white;
+    font-size: var(--font-size);
+}
+
+#winnerImage {
+    max-width: 33%;
+    margin: 10px 0;
+}
+
+#nextRoundButton {
+    padding: 10px 20px;
+    font-size: var(--font-size);
+    cursor: pointer;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 5px;
+}
+
+#nextRoundButton:hover {
+    background: lightgray;
+}
+
+@media (max-width: 600px) {
+    :root {
+        --game-width: 95vw;
+    }
 }
