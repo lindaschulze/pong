@@ -1,205 +1,116 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("pong");
+const ctx = canvas.getContext("2d");
 
-    // Canvas dimensions
-    const canvasRatio = 3 / 2; // 3:2 aspect ratio
-    function resizeCanvas() {
-        const width = Math.min(window.innerWidth * 0.9, 600);
-        canvas.width = width;
-        canvas.height = width / canvasRatio;
+// Set up initial game variables
+let leftPaddle, rightPaddle, ball, gameInterval;
+
+// Define paddles and ball
+const paddleWidth = 20, paddleHeight = 100;
+const ballSize = 10;
+
+// Resize canvas to maintain aspect ratio (5:4 or 4:5)
+function resizeCanvas() {
+    if (window.innerWidth > window.innerHeight) {
+        // 4:5 horizontal ratio
+        canvas.width = window.innerHeight * 4 / 5;
+        canvas.height = window.innerHeight;
+    } else {
+        // 5:4 vertical ratio
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerWidth * 4 / 5;
     }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    resetGame();
+}
 
-    // Paddle properties
-    const paddleHeight = canvas.height * 0.2; // 20% of canvas height
-    let paddle1Width, paddle2Width;
+// Reset game elements after resizing
+function resetGame() {
+    leftPaddle = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, dy: 0 };
+    rightPaddle = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, dy: 0 };
+    ball = { x: canvas.width / 2, y: canvas.height / 2, size: ballSize, dx: 4, dy: 4 };
+}
 
-    const paddleImage1 = new Image();
-    const paddleImage2 = new Image();
-    paddleImage1.src = "paddle1.png";
-    paddleImage2.src = "paddle2.png";
-
-    // Load images to calculate proportional widths
-    paddleImage1.onload = () => {
-        paddle1Width = (paddleImage1.width / paddleImage1.height) * paddleHeight;
-    };
-    paddleImage2.onload = () => {
-        paddle2Width = (paddleImage2.width / paddleImage2.height) * paddleHeight;
-        paddle2.x = canvas.width - paddle2Width; // Adjust right paddle position
-    };
-
-    // Paddle positions
-    const paddle1 = { x: 0, y: canvas.height / 2 - paddleHeight / 2 };
-    const paddle2 = { x: canvas.width, y: canvas.height / 2 - paddleHeight / 2 };
-
-    // Ball properties
-    const ball = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        radius: canvas.width * 0.02, // 2% of canvas width
-        dx: canvas.width * 0.005,
-        dy: canvas.width * 0.005,
-    };
-
-    // Scores and rounds
-    let player1Score = 0;
-    let player2Score = 0;
-    let roundNumber = 1;
-
-    // Game state
-    let gamePaused = false;
-
-    // Touch controls
-    canvas.addEventListener("touchmove", (event) => {
-        event.preventDefault();
-        for (let touch of event.touches) {
-            const touchX = touch.clientX - canvas.offsetLeft;
-            const touchY = touch.clientY - canvas.offsetTop;
-
-            if (touchX < canvas.width / 2) {
-                paddle1.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
-            } else {
-                paddle2.y = Math.max(0, Math.min(canvas.height - paddleHeight, touchY - paddleHeight / 2));
-            }
-        }
-    });
+// Draw paddles and ball
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw paddles
-    function drawPaddle(paddle, image, width) {
-        if (width) {
-            ctx.drawImage(image, paddle.x, paddle.y, width, paddleHeight);
-        }
-    }
+    ctx.fillStyle = "white";
+    ctx.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
+    ctx.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
 
     // Draw ball
-    function drawBall() {
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+    ctx.closePath();
+}
+
+// Move paddles based on user input or touch events
+function movePaddles() {
+    leftPaddle.y += leftPaddle.dy;
+    rightPaddle.y += rightPaddle.dy;
+
+    // Prevent paddles from going out of bounds
+    leftPaddle.y = Math.max(0, Math.min(leftPaddle.y, canvas.height - leftPaddle.height));
+    rightPaddle.y = Math.max(0, Math.min(rightPaddle.y, canvas.height - rightPaddle.height));
+}
+
+// Move the ball and handle collisions
+function moveBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Ball collision with top/bottom
+    if (ball.y <= 0 || ball.y >= canvas.height) {
+        ball.dy = -ball.dy;
     }
 
-    // Draw middle line
-    function drawMiddleLine() {
-        ctx.beginPath();
-        ctx.setLineDash([10, 10]);
-        ctx.moveTo(canvas.width / 2, 0);
-        ctx.lineTo(canvas.width / 2, canvas.height);
-        ctx.strokeStyle = "white";
-        ctx.stroke();
-        ctx.closePath();
+    // Ball collision with paddles
+    if (ball.x <= leftPaddle.x + leftPaddle.width && ball.y >= leftPaddle.y && ball.y <= leftPaddle.y + leftPaddle.height) {
+        ball.dx = -ball.dx;
+    }
+    if (ball.x >= rightPaddle.x - ball.size && ball.y >= rightPaddle.y && ball.y <= rightPaddle.y + rightPaddle.height) {
+        ball.dx = -ball.dx;
     }
 
-    // Move ball
-    function moveBall() {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-
-        // Bounce off top and bottom walls
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-            ball.dy *= -1;
-        }
-
-        // Bounce off paddles
-        if (
-            (ball.x - ball.radius < paddle1.x + paddle1Width &&
-                ball.y > paddle1.y &&
-                ball.y < paddle1.y + paddleHeight) ||
-            (ball.x + ball.radius > paddle2.x &&
-                ball.y > paddle2.y &&
-                ball.y < paddle2.y + paddleHeight)
-        ) {
-            ball.dx *= -1;
-        }
-
-        // Scoring
-        if (ball.x - ball.radius < 0) {
-            player2Score++;
-            resetBall();
-        } else if (ball.x + ball.radius > canvas.width) {
-            player1Score++;
-            resetBall();
-        }
-
-        checkWinner();
-    }
-
-    // Reset ball
-    function resetBall() {
+    // Reset ball if it goes out of bounds
+    if (ball.x <= 0 || ball.x >= canvas.width) {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = Math.abs(ball.dx) * (ball.dx > 0 ? 1 : -1);
-        ball.dy = Math.abs(ball.dy) * (ball.dy > 0 ? 1 : -1);
-        updateScoreboard();
+        ball.dx = 4;
+        ball.dy = 4;
     }
+}
 
-    // Update scoreboard
-    function updateScoreboard() {
-        document.getElementById("player1Score").textContent = player1Score;
-        document.getElementById("player2Score").textContent = player2Score;
+// Game loop
+function gameLoop() {
+    draw();
+    movePaddles();
+    moveBall();
+}
+
+// Resize canvas on window resize
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();  // Initialize canvas size and game
+
+// Set up game loop interval
+gameInterval = setInterval(gameLoop, 1000 / 60);
+
+// Handle touch events for paddle control
+canvas.addEventListener("touchmove", function(e) {
+    e.preventDefault();
+    const touchY = e.touches[0].clientY;
+    if (touchY < canvas.height / 2) {
+        leftPaddle.dy = -5;
+        rightPaddle.dy = -5;
+    } else {
+        leftPaddle.dy = 5;
+        rightPaddle.dy = 5;
     }
+}, false);
 
-    // Check for round winner
-    function checkWinner() {
-        if (player1Score >= 5 || player2Score >= 5) {
-            gamePaused = true;
-            const winner = player1Score >= 5 ? "Mio" : "Mika";
-            const winnerImage = player1Score >= 5 ? paddleImage1 : paddleImage2;
-
-            // Show winner overlay
-            showWinnerOverlay(winner, winnerImage);
-        }
-    }
-
-    // Show winner overlay
-    function showWinnerOverlay(winner, winnerImage) {
-        const overlay = document.getElementById("winnerOverlay");
-        const winnerText = document.getElementById("winnerText");
-        const winnerImg = document.getElementById("winnerImage");
-        const roundText = document.getElementById("roundText");
-
-        winnerText.textContent = `${winner} gewinnt diese Runde!`;
-        winnerImg.src = winnerImage.src;
-        roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
-
-        overlay.style.display = "flex";
-    }
-
-    // Start next round
-    function startNextRound() {
-        gamePaused = false;
-        player1Score = 0;
-        player2Score = 0;
-        roundNumber++;
-        ball.dx *= 1.1; // Increase speed slightly
-        ball.dy *= 1.1;
-        updateScoreboard();
-
-        const overlay = document.getElementById("winnerOverlay");
-        overlay.style.display = "none";
-    }
-
-    // Event listener for next round button
-    document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
-
-    // Game loop
-    function gameLoop() {
-        if (!gamePaused) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawMiddleLine();
-
-            drawPaddle(paddle1, paddleImage1, paddle1Width);
-            drawPaddle(paddle2, paddleImage2, paddle2Width);
-
-            drawBall();
-            moveBall();
-        }
-        requestAnimationFrame(gameLoop);
-    }
-
-    updateScoreboard();
-    gameLoop();
-});
+canvas.addEventListener("touchend", function() {
+    leftPaddle.dy = 0;
+    rightPaddle.dy = 0;
+}, false);
