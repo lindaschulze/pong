@@ -1,100 +1,40 @@
-/* General Reset */
-body {
+body, html {
     margin: 0;
     padding: 0;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
+    background-color: #2e8b57; /* Dunkelgrün als Spielfeld-Hintergrund */
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
 }
 
-#gameContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    max-width: 600px;
-}
-
-/* Scoreboard */
-#scoreboard {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 600px;
-    font-size: 20px;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-/* Game Canvas */
-#gameCanvas {
-    background-color: #006400;
-    border: 2px solid white;
-    width: 90vw;
-    max-width: 600px;
-    height: auto;
-}
-
-/* Winner Overlay */
-#winnerOverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
+canvas {
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    display: block;
 }
 
-#winnerOverlay div {
+.scoreboard {
+    position: absolute;
+    top: 10px;
+    width: 100%;
     text-align: center;
+    font-size: 2em;
     color: white;
 }
 
-#winnerImage {
-    max-width: 200px;
-    margin: 10px 0;
-}
-
-#nextRoundButton {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 5px;
-}
-
-#nextRoundButton:hover {
-    background: lightgray;
-}
-
-/* Responsive Breakpoints */
 @media (max-width: 768px) {
-    #scoreboard {
-        font-size: 16px;
-    }
-    
-    #gameCanvas {
-        width: 95vw;
-    }
-}
-
-@media (max-width: 480px) {
-    #scoreboard {
-        font-size: 14px;
-    }
-    
-    #gameCanvas {
-        width: 100vw;
+    .scoreboard {
+        font-size: 1.5em;
     }
 }
