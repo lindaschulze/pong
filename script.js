@@ -1,8 +1,28 @@
-// script.js
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const scoreboard = document.getElementById("scoreboard");
 const winnerDisplay = document.getElementById("winner");
+
+let canvasWidth = 800;
+let canvasHeight = 500;
+
+function resizeCanvas() {
+  const ratio = canvasWidth / canvasHeight;
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+
+  if (width / height > ratio) {
+    width = height * ratio;
+  } else {
+    height = width / ratio;
+  }
+
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
 const paddleWidth = 10;
 const paddleHeight = 100;
@@ -52,53 +72,4 @@ function moveBall() {
     ballSpeedY = deltaY * 0.2;
   }
 
-  if (ballX > canvas.width - 20 - paddleWidth * 3 && ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
-    ballSpeedX = -ballSpeedX;
-    let deltaY = ballY - (paddle2Y + paddleHeight / 2);
-    ballSpeedY = deltaY * 0.2;
-  }
-
-  if (ballX < 0) {
-    score2++;
-    resetBall();
-  }
-
-  if (ballX > canvas.width) {
-    score1++;
-    resetBall();
-  }
-
-  scoreboard.textContent = `${score1} : ${score2}`;
-}
-
-function resetBall() {
-  ballX = canvas.width / 2;
-  ballY = canvas.height / 2;
-  ballSpeedX = -ballSpeedX;
-  ballSpeedY = 2;
-}
-
-function gameLoop() {
-  moveBall();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
-
-canvas.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  for (let touch of e.touches) {
-    const rect = canvas.getBoundingClientRect();
-    const y = touch.clientY - rect.top;
-    const x = touch.clientX - rect.left;
-
-    if (x < canvas.width / 2) {
-      paddle1Y = y - paddleHeight / 2;
-    } else {
-      paddle2Y = y - paddleHeight / 2;
-    }
-  }
-}, { passive: false });
-
-window.onload = () => {
-  gameLoop();
-};
+  if (ballX > canvas.width - 20 - paddleWidth * 3 && ballY > paddle2Y && ballY < paddle2Y
