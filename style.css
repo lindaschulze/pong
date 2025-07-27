@@ -1,50 +1,51 @@
 body {
   margin: 0;
   background-color: black;
-  font-family: sans-serif;
-  overflow: hidden;
   touch-action: none;
-}
-
-#selectionScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #111;
-  color: white;
-  text-align: center;
-}
-
-.paddle-options {
-  display: flex;
-  gap: 30px;
-  margin-top: 20px;
-}
-
-.paddle-options img {
-  width: 100px;
-  height: auto;
-  cursor: pointer;
-  border: 3px solid transparent;
-  border-radius: 10px;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.paddle-options img:hover {
-  transform: scale(1.1);
-  border-color: white;
+  overflow: hidden;
 }
 
 .game-container {
+  position: relative;
   width: 100vw;
   height: 100vh;
 }
 
 #gameCanvas {
-  display: block;
   background-color: #003300;
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+#scoreboard {
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 32px;
+  color: white;
+  font-family: Arial, sans-serif;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#winnerOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 36px;
+  font-family: Arial, sans-serif;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px 40px;
+  border-radius: 20px;
+  z-index: 20;
+  pointer-events: none;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
 }
