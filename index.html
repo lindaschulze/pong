@@ -2,20 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Pong Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Pong Touch Game</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="gameContainer">
-    <div id="scoreboard">0 : 0</div>
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-    <div id="winner"></div>
+  <div class="game-container">
+    <div id="scoreboard">
+      <span id="score-left">0</span> : <span id="score-right">0</span>
+    </div>
+    <canvas id="gameCanvas"></canvas>
   </div>
-
-  <img src="paddle1.png" id="paddle1img" class="paddle-img" />
-  <img src="paddle2.png" id="paddle2img" class="paddle-img" />
-
   <script src="script.js"></script>
 </body>
 </html>
