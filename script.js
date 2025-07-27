@@ -1,77 +1,53 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-let leftPaddleImage = null;
-let selectedImagePath = null;
-let paddleImageReady = false;
-
-function selectPaddle(path) {
-  selectedImagePath = path;
-  const img = new Image();
-  img.src = path;
-  img.onload = () => {
-    leftPaddleImage = img;
-    paddleImageReady = true;
-    document.getElementById("selectionScreen").style.display = "none";
-    document.querySelector(".game-container").style.display = "block";
-    resizeCanvas();
-    gameLoop();
-  };
-}
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
 let paddleHeight = 100;
 let paddleWidth = 10;
-
-let rightPaddleY = 200;
-let leftPaddleY = 200;
-
-let ballX = 300;
-let ballY = 200;
 let ballSize = 10;
+
+let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+let ballX = canvas.width / 2;
+let ballY = canvas.height / 2;
 let ballSpeedX = 4;
 let ballSpeedY = 3;
 
-function drawPaddles() {
-  // Left paddle with image
-  if (paddleImageReady && leftPaddleImage) {
-    let aspect = leftPaddleImage.height / leftPaddleImage.width;
-    let imgHeight = paddleHeight;
-    let imgWidth = imgHeight / aspect;
-    ctx.drawImage(leftPaddleImage, 0, leftPaddleY, imgWidth, imgHeight);
-  } else {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
-  }
+let scoreLeft = 0;
+let scoreRight = 0;
+let gameOver = false;
 
-  // Right paddle (default)
-  ctx.fillStyle = "white";
-  ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
-}
-
-function drawBall() {
-  ctx.fillStyle = "white";
-  ctx.fillRect(ballX, ballY, ballSize, ballSize);
-}
-
-function drawField() {
-  ctx.fillStyle = "#003300";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+function drawRect(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
 }
 
 function drawMiddleLine() {
   ctx.fillStyle = "white";
+  const segmentHeight = 20;
   for (let y = 0; y < canvas.height; y += 40) {
-    ctx.fillRect(canvas.width / 2 - 1, y, 2, 20);
+    ctx.fillRect(canvas.width / 2 - 1, y, 2, segmentHeight);
   }
 }
 
+function draw() {
+  drawRect(0, 0, canvas.width, canvas.height, "#003300");
+  drawMiddleLine();
+  drawRect(0, leftPaddleY, paddleWidth, paddleHeight, "white");
+  drawRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight, "white");
+  drawRect(ballX, ballY, ballSize, ballSize, "white");
+}
+
 function moveBall() {
+  if (gameOver) return;
+
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
@@ -79,43 +55,79 @@ function moveBall() {
     ballSpeedY = -ballSpeedY;
   }
 
+  // Left paddle collision
   if (
-    ballX <= 20 &&
-    ballY + ballSize >= leftPaddleY &&
-    ballY <= leftPaddleY + paddleHeight
+    ballX <= paddleWidth &&
+    ballY + ballSize > leftPaddleY &&
+    ballY < leftPaddleY + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
-    ballX = 20;
+    ballX = paddleWidth;
   }
 
+  // Right paddle collision
   if (
     ballX + ballSize >= canvas.width - paddleWidth &&
-    ballY + ballSize >= rightPaddleY &&
-    ballY <= rightPaddleY + paddleHeight
+    ballY + ballSize > rightPaddleY &&
+    ballY < rightPaddleY + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
     ballX = canvas.width - paddleWidth - ballSize;
   }
 
-  // Reset if out of bounds
-  if (ballX < 0 || ballX > canvas.width) {
-    ballX = canvas.width / 2;
-    ballY = canvas.height / 2;
-    ballSpeedX = -ballSpeedX;
-    ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+  // Score
+  if (ballX < 0) {
+    scoreRight++;
+    updateScore();
+    checkWin();
+    resetBall();
+  }
+
+  if (ballX > canvas.width) {
+    scoreLeft++;
+    updateScore();
+    checkWin();
+    resetBall();
   }
 }
 
-function gameLoop() {
-  drawField();
-  drawMiddleLine();
-  drawPaddles();
-  drawBall();
-  moveBall();
-  requestAnimationFrame(gameLoop);
+function updateScore() {
+  document.getElementById("score-left").textContent = scoreLeft;
+  document.getElementById("score-right").textContent = scoreRight;
 }
 
-// Touch-Steuerung
+function resetBall() {
+  ballX = canvas.width / 2;
+  ballY = canvas.height / 2;
+  ballSpeedX = -ballSpeedX;
+  ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function checkWin() {
+  if (scoreLeft >= 5) {
+    showWinner("Spieler Links gewinnt!");
+  } else if (scoreRight >= 5) {
+    showWinner("Spieler Rechts gewinnt!");
+  }
+}
+
+function showWinner(text) {
+  gameOver = true;
+  const overlay = document.getElementById("winnerOverlay");
+  overlay.textContent = text;
+  overlay.classList.remove("hidden");
+}
+
+function gameLoop() {
+  if (!gameOver) {
+    draw();
+    moveBall();
+  }
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+// Touch control
 canvas.addEventListener("touchmove", function (e) {
   e.preventDefault();
   for (let i = 0; i < e.touches.length; i++) {
