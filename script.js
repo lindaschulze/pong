@@ -1,75 +1,124 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const scoreboard = document.getElementById("scoreboard");
-const winnerDisplay = document.getElementById("winner");
-
-let canvasWidth = 800;
-let canvasHeight = 500;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
 function resizeCanvas() {
-  const ratio = canvasWidth / canvasHeight;
-  let width = window.innerWidth;
-  let height = window.innerHeight;
-
-  if (width / height > ratio) {
-    width = height * ratio;
-  } else {
-    height = width / ratio;
-  }
-
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
-
-window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-const paddleWidth = 10;
-const paddleHeight = 100;
-let paddle1Y = canvas.height / 2 - paddleHeight / 2;
-let paddle2Y = canvas.height / 2 - paddleHeight / 2;
+let paddleHeight = 100;
+let paddleWidth = 10;
+let ballSize = 10;
+
+let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
 let ballX = canvas.width / 2;
 let ballY = canvas.height / 2;
 let ballSpeedX = 5;
-let ballSpeedY = 2;
-let score1 = 0;
-let score2 = 0;
+let ballSpeedY = 3;
 
-const paddleImg1 = document.getElementById("paddle1img");
-const paddleImg2 = document.getElementById("paddle2img");
+let scoreLeft = 0;
+let scoreRight = 0;
+
+function drawRect(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+}
+
+function drawMiddleLine() {
+  ctx.fillStyle = "white";
+  let segmentHeight = 20;
+  for (let y = 0; y < canvas.height; y += 40) {
+    ctx.fillRect(canvas.width / 2 - 1, y, 2, segmentHeight);
+  }
+}
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  ctx.setLineDash([10, 10]);
-  ctx.beginPath();
-  ctx.moveTo(canvas.width / 2, 0);
-  ctx.lineTo(canvas.width / 2, canvas.height);
-  ctx.strokeStyle = "#ffffff44";
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.drawImage(paddleImg1, 10, paddle1Y, paddleWidth * 3, paddleHeight);
-  ctx.drawImage(paddleImg2, canvas.width - 10 - paddleWidth * 3, paddle2Y, paddleWidth * 3, paddleHeight);
-
-  ctx.fillStyle = "white";
-  ctx.beginPath();
-  ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
-  ctx.fill();
+  drawRect(0, 0, canvas.width, canvas.height, '#003300'); // field
+  drawMiddleLine();
+  drawRect(0, leftPaddleY, paddleWidth, paddleHeight, 'white');
+  drawRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight, 'white');
+  drawRect(ballX, ballY, ballSize, ballSize, 'white');
 }
 
 function moveBall() {
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
-  if (ballY <= 0 || ballY >= canvas.height) {
+  // Top & bottom wall
+  if (ballY <= 0 || ballY + ballSize >= canvas.height) {
     ballSpeedY = -ballSpeedY;
   }
 
-  if (ballX < 20 + paddleWidth * 3 && ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
+  // Left paddle
+  if (
+    ballX <= paddleWidth &&
+    ballY + ballSize > leftPaddleY &&
+    ballY < leftPaddleY + paddleHeight
+  ) {
     ballSpeedX = -ballSpeedX;
-    let deltaY = ballY - (paddle1Y + paddleHeight / 2);
-    ballSpeedY = deltaY * 0.2;
+    ballX = paddleWidth; // prevent sticking
   }
 
-  if (ballX > canvas.width - 20 - paddleWidth * 3 && ballY > paddle2Y && ballY < paddle2Y
+  // Right paddle
+  if (
+    ballX + ballSize >= canvas.width - paddleWidth &&
+    ballY + ballSize > rightPaddleY &&
+    ballY < rightPaddleY + paddleHeight
+  ) {
+    ballSpeedX = -ballSpeedX;
+    ballX = canvas.width - paddleWidth - ballSize; // prevent sticking
+  }
+
+  // Score left
+  if (ballX > canvas.width) {
+    scoreLeft++;
+    updateScore();
+    resetBall();
+  }
+
+  // Score right
+  if (ballX < 0) {
+    scoreRight++;
+    updateScore();
+    resetBall();
+  }
+}
+
+function updateScore() {
+  document.getElementById("score-left").textContent = scoreLeft;
+  document.getElementById("score-right").textContent = scoreRight;
+}
+
+function resetBall() {
+  ballX = canvas.width / 2;
+  ballY = canvas.height / 2;
+  ballSpeedX = -ballSpeedX;
+  ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function gameLoop() {
+  draw();
+  moveBall();
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+// Touch control
+canvas.addEventListener('touchmove', function (e) {
+  e.preventDefault();
+  for (let i = 0; i < e.touches.length; i++) {
+    let touch = e.touches[i];
+    let touchX = touch.clientX;
+    let touchY = touch.clientY;
+
+    if (touchX < canvas.width / 2) {
+      leftPaddleY = touchY - paddleHeight / 2;
+    } else {
+      rightPaddleY = touchY - paddleHeight / 2;
+    }
+  }
+}, { passive: false });
