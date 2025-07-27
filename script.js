@@ -1,12 +1,12 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener("resize", resizeCanvas);
 
 let paddleHeight = 100;
 let paddleWidth = 10;
@@ -17,7 +17,7 @@ let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 
 let ballX = canvas.width / 2;
 let ballY = canvas.height / 2;
-let ballSpeedX = 5;
+let ballSpeedX = 4;
 let ballSpeedY = 3;
 
 let scoreLeft = 0;
@@ -30,59 +30,57 @@ function drawRect(x, y, w, h, color) {
 
 function drawMiddleLine() {
   ctx.fillStyle = "white";
-  let segmentHeight = 20;
+  const segmentHeight = 20;
   for (let y = 0; y < canvas.height; y += 40) {
     ctx.fillRect(canvas.width / 2 - 1, y, 2, segmentHeight);
   }
 }
 
 function draw() {
-  drawRect(0, 0, canvas.width, canvas.height, '#003300'); // field
+  drawRect(0, 0, canvas.width, canvas.height, "#003300");
   drawMiddleLine();
-  drawRect(0, leftPaddleY, paddleWidth, paddleHeight, 'white');
-  drawRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight, 'white');
-  drawRect(ballX, ballY, ballSize, ballSize, 'white');
+  drawRect(0, leftPaddleY, paddleWidth, paddleHeight, "white");
+  drawRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight, "white");
+  drawRect(ballX, ballY, ballSize, ballSize, "white");
 }
 
 function moveBall() {
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
-  // Top & bottom wall
   if (ballY <= 0 || ballY + ballSize >= canvas.height) {
     ballSpeedY = -ballSpeedY;
   }
 
-  // Left paddle
+  // Left paddle collision
   if (
     ballX <= paddleWidth &&
     ballY + ballSize > leftPaddleY &&
     ballY < leftPaddleY + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
-    ballX = paddleWidth; // prevent sticking
+    ballX = paddleWidth;
   }
 
-  // Right paddle
+  // Right paddle collision
   if (
     ballX + ballSize >= canvas.width - paddleWidth &&
     ballY + ballSize > rightPaddleY &&
     ballY < rightPaddleY + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
-    ballX = canvas.width - paddleWidth - ballSize; // prevent sticking
+    ballX = canvas.width - paddleWidth - ballSize;
   }
 
-  // Score left
-  if (ballX > canvas.width) {
-    scoreLeft++;
+  // Score
+  if (ballX < 0) {
+    scoreRight++;
     updateScore();
     resetBall();
   }
 
-  // Score right
-  if (ballX < 0) {
-    scoreRight++;
+  if (ballX > canvas.width) {
+    scoreLeft++;
     updateScore();
     resetBall();
   }
@@ -108,7 +106,7 @@ function gameLoop() {
 gameLoop();
 
 // Touch control
-canvas.addEventListener('touchmove', function (e) {
+canvas.addEventListener("touchmove", function (e) {
   e.preventDefault();
   for (let i = 0; i < e.touches.length; i++) {
     let touch = e.touches[i];
