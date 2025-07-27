@@ -2,17 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Pong Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong mit Paddle-Auswahl</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="game-container">
-    <div id="scoreboard">
-      <span id="score-left">0</span> : <span id="score-right">0</span>
+  <div id="selectionScreen">
+    <h1>Wähle deinen Player!</h1>
+    <div class="paddle-options">
+      <img src="paddle1.png" alt="Paddle 1" onclick="selectPaddle('paddle1.png')" />
+      <img src="paddle2.png" alt="Paddle 2" onclick="selectPaddle('paddle2.png')" />
     </div>
+  </div>
+
+  <div class="game-container" style="display: none;">
     <canvas id="gameCanvas"></canvas>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
