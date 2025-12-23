@@ -8,11 +8,39 @@
 </head>
 <body>
     <div id="gameContainer">
+        <!-- Spielerauswahl Overlay -->
+        <div id="playerSelectOverlay">
+            <div>
+                <h1>Spieler wählen</h1>
+                <div id="playerButtons">
+                    <button data-player="mio">
+                        <img src="paddle1.png" alt="Mio">
+                        <span>Mio</span>
+                    </button>
+                    <button data-player="mika">
+                        <img src="paddle2.png" alt="Mika">
+                        <span>Mika</span>
+                    </button>
+                    <button data-player="faultier">
+                        <img src="faultier.png" alt="Faultier">
+                        <span>Faultier (Langsam)</span>
+                    </button>
+                    <button data-player="alien">
+                        <img src="alien.png" alt="Alien">
+                        <span>Alien (Schnell)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
         <div id="scoreboard">
-            <div>Mio: <span id="player1Score">0</span></div>
-            <div>Mika: <span id="player2Score">0</span></div>
+            <div id="player1Name">Spieler 1: <span id="player1Score">0</span></div>
+            <div id="player2Name">Spieler 2: <span id="player2Score">0</span></div>
         </div>
         <canvas id="gameCanvas"></canvas>
+        
+        <!-- Winner Overlay -->
         <div id="winnerOverlay">
             <div>
                 <h1 id="winnerText"></h1>
