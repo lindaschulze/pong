@@ -2,17 +2,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration
+    // Spieler-Konfiguration (Computer hinzugefügt)
     const playerConfig = {
         mio: { image: "paddle1.png", name: "Mio", ballSpeed: 3 },
         mika: { image: "paddle2.png", name: "Mika", ballSpeed: 3 },
         faultier: { image: "faultier.png", name: "Faultier", ballSpeed: 1.5 },
-        alien: { image: "alien.png", name: "Alien", ballSpeed: 6 }
+        alien: { image: "alien.png", name: "Alien", ballSpeed: 6 },
+        computer: { image: "computer.png", name: "Computer", ballSpeed: 3, isAI: true }
     };
 
     let selectedPlayer1 = "mio";
     let selectedPlayer2 = "mika";
     let player1Image, player2Image;
+    let isPlayer2AI = false;
     
     // Game constants
     const PADDLE_HEIGHT = 80;
@@ -70,6 +72,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // COMPUTER AI - Automatische Paddle-Steuerung
+    function updateAI() {
+        if (!isPlayer2AI || gamePaused) return;
+        
+        const centerPaddle = paddle2.y + (PADDLE_HEIGHT * scaleFactor) / 2;
+        const centerBall = ball.y;
+        const paddleSpeed = 4 * scaleFactor;
+        
+        if (centerPaddle < centerBall - 10) {
+            paddle2.y += paddleSpeed;
+        } else if (centerPaddle > centerBall + 10) {
+            paddle2.y -= paddleSpeed;
+        }
+        
+        // Paddle innerhalb Canvas halten
+        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+        paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, paddle2.y));
+    }
+
     // Spielerauswahl
     function initPlayerSelect() {
         const buttons = document.querySelectorAll("#playerButtons button");
@@ -89,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     selectedPlayer2 = player;
                     button.classList.add("active", "player2");
                     player2Selected = true;
+                    isPlayer2AI = playerConfig[player].isAI || false;
                     document.getElementById("startGameButton").textContent = "Los geht's!";
                 }
             });
@@ -102,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
         player2Image = new Image();
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed; // Ball-Geschwindigkeit basierend auf Spieler 1
+        ball.speed = playerConfig[selectedPlayer1].ballSpeed;
         
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
@@ -121,9 +143,9 @@ document.addEventListener("DOMContentLoaded", () => {
         gameStarted = true;
     }
 
-    // Input handling
+    // Input handling (nur für Player 1, wenn kein AI)
     function handleInput(event) {
-        if (!gameStarted) return;
+        if (!gameStarted || isPlayer2AI) return; // AI übernimmt Paddle 2
         event.preventDefault();
         
         const rect = canvas.getBoundingClientRect();
@@ -141,17 +163,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const touchX = (clientX - rect.left) / rect.width * canvas.width;
         const touchY = (clientY - rect.top) / rect.height * canvas.height;
         
-        if (touchX < canvas.width / 2) {
-            paddle1.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
-        } else {
-            paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
-        }
+        // Nur linker Paddle steuerbar (rechts = AI)
+        paddle1.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
     }
 
     canvas.addEventListener("touchmove", handleInput, { passive: false });
     canvas.addEventListener("mousemove", handleInput);
 
-    // Draw functions
+    // Draw functions (mit Spiegelung)
     function drawPaddle(paddle, image, width) {
         if (width && image.complete) {
             ctx.save();
@@ -279,6 +298,9 @@ document.addEventListener("DOMContentLoaded", () => {
             requestAnimationFrame(gameLoop);
             return;
         }
+        
+        // AI Update
+        updateAI();
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawMiddleLine();
