@@ -23,14 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Hauptball + Extra-Bälle (Nugget)
     let balls = [];
-
+    
     let paddle1 = { x: 0, y: 0, isLeft: true };
     let paddle2 = { x: 0, y: 0, isLeft: false };
     
-    // **NUGGET COOLDOWN** - 1 Sekunde zwischen Extra-Bällen
-    let nuggetCooldownLeft = 0;   // Timestamp für linkes Nugget
-    let nuggetCooldownRight = 0;  // Timestamp für rechtes Nugget
-    const NUGGET_COOLDOWN = 1000; // 1 Sekunde (ms)
+    // **NUGGET COOLDOWN** - 1 Sekunde pro Paddle
+    let nuggetCooldowns = {
+        left: 0,   // Timestamp wann nächster Ball möglich
+        right: 0
+    };
     
     let player1Score = 0;
     let player2Score = 0;
@@ -96,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
             aiPaddle.y -= aiMoveSpeed;
         }
         
-        aiPaddle.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, aiP Paddle.y));
+        aiPaddle.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, aiPaddle.y));
     }
 
     function initPlayerSelect() {
@@ -152,6 +153,9 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("playerSelectOverlay").style.display = "none";
         gameStarted = true;
         setupMainBall();
+        
+        // Cooldowns zurücksetzen
+        nuggetCooldowns = { left: 0, right: 0 };
     }
 
     function setupMainBall() {
@@ -188,4 +192,208 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (touchX < canvas.width / 2 && !playerConfig[selectedPlayer1].isAI) {
             paddle1.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
-        } else if (touchX
+        } else if (touchX >= canvas.width / 2 && !playerConfig[selectedPlayer2].isAI) {
+            paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
+        }
+    }
+
+    canvas.addEventListener("touchmove", handleInput, { passive: false });
+    canvas.addEventListener("mousemove", handleInput);
+
+    function drawPaddle(paddle, image, width) {
+        if (width && image && image.complete) {
+            ctx.save();
+            if (paddle.isLeft) {
+                ctx.scale(-1, 1);
+                ctx.drawImage(image, -paddle.x - width, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
+            } else {
+                ctx.drawImage(image, paddle.x, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
+            }
+            ctx.restore();
+        }
+    }
+
+    function drawBall(ball) {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawMiddleLine() {
+        ctx.beginPath();
+        ctx.setLineDash([10 * scaleFactor, 10 * scaleFactor]);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2 * scaleFactor;
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    function canSpawnNuggetBall(side) {
+        const now = Date.now();
+        return now - nuggetCooldowns[side] >= 1000; // 1 Sekunde Cooldown
+    }
+
+    function spawnNuggetBall(paddle) {
+        const side = paddle.isLeft ? 'left' : 'right';
+        
+        // **1-SEKUNDEN-CHECK**
+        if (!canSpawnNuggetBall(side)) {
+            return false; // Cooldown aktiv
+        }
+        
+        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+        const radius = 8 * scaleFactor;
+        const x = paddle.isLeft ? paddle.x + paddle1Width / 2 : paddle.x + paddle2Width / 2;
+        const y = paddle.y + scaledPaddleHeight + radius + 2;
+
+        balls.push({
+            x,
+            y,
+            radius,
+            dx: (Math.random() > 0.5 ? 1 : -1) * pixelsPerFrame * 0.8,
+            dy: -pixelsPerFrame,
+            isMain: false
+        });
+        
+        // **COOLDOWN AKTIVIEREN** - 1 Sekunde
+        nuggetCooldowns[side] = Date.now();
+        return true;
+    }
+
+    function moveBalls() {
+        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+        const isNuggetLeft  = selectedPlayer1 === "nugget";
+        const isNuggetRight = selectedPlayer2 === "nugget";
+
+        balls.forEach((ball, index) => {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Wand-Kollision
+            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                ball.dy *= -1;
+            }
+
+            // Paddle-Kollision
+            let hitLeft = false;
+            let hitRight = false;
+
+            if (
+                ball.x - ball.radius < paddle1.x + paddle1Width &&
+                ball.y > paddle1.y &&
+                ball.y < paddle1.y + scaledPaddleHeight
+            ) {
+                ball.dx *= -1;
+                hitLeft = true;
+            }
+
+            if (
+                ball.x + ball.radius > paddle2.x &&
+                ball.y > paddle2.y &&
+                ball.y < paddle2.y + scaledPaddleHeight
+            ) {
+                ball.dx *= -1;
+                hitRight = true;
+            }
+
+            // **NUGGET SPECIAL** mit 1s Cooldown
+            if (hitLeft && isNuggetLeft) {
+                spawnNuggetBall(paddle1);
+            }
+            if (hitRight && isNuggetRight) {
+                spawnNuggetBall(paddle2);
+            }
+
+            // Scoring nur für Hauptball
+            if (ball.isMain) {
+                if (ball.x - ball.radius < 0) {
+                    player2Score++;
+                    setupMainBall();
+                } else if (ball.x + ball.radius > canvas.width) {
+                    player1Score++;
+                    setupMainBall();
+                }
+            }
+        });
+
+        checkWinner();
+    }
+
+    function updateScoreboard() {
+        document.getElementById("player1Score").textContent = player1Score;
+        document.getElementById("player2Score").textContent = player2Score;
+    }
+
+    function checkWinner() {
+        if (player1Score >= 5 || player2Score >= 5) {
+            gamePaused = true;
+            const winner = player1Score >= 5 ? playerConfig[selectedPlayer1].name : playerConfig[selectedPlayer2].name;
+            const winnerImage = player1Score >= 5 ? player1Image : player2Image;
+            showWinnerOverlay(winner, winnerImage);
+        }
+    }
+
+    function showWinnerOverlay(winner, winnerImage) {
+        const overlay = document.getElementById("winnerOverlay");
+        const winnerText = document.getElementById("winnerText");
+        const winnerImg = document.getElementById("winnerImage");
+        const roundText = document.getElementById("roundText");
+
+        winnerText.textContent = `${winner} gewinnt diese Runde!`;
+        winnerImg.src = winnerImage.src;
+        roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
+        overlay.style.display = "flex";
+    }
+
+    function startNextRound() {
+        gamePaused = false;
+        player1Score = 0;
+        player2Score = 0;
+        roundNumber++;
+        pixelsPerFrame = getSlowestPlayerSpeed() + (roundNumber - 1) * 0.5;
+        document.getElementById("winnerOverlay").style.display = "none";
+        updateGamePositions();
+        setupMainBall();
+        
+        // Cooldowns zurücksetzen für neue Runde
+        nuggetCooldowns = { left: 0, right: 0 };
+    }
+
+    document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
+    window.addEventListener('resize', resizeCanvas);
+
+    function gameLoop(timestamp) {
+        if (timestamp - lastFrameTime < FRAME_TIME) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+        lastFrameTime = timestamp;
+
+        if (!gameStarted) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMiddleLine();
+        drawPaddle(paddle1, player1Image, paddle1Width);
+        drawPaddle(paddle2, player2Image, paddle2Width);
+        balls.forEach(drawBall);
+        
+        if (!gamePaused) {
+            updateAI();
+            moveBalls();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Init
+    resizeCanvas();
+    initPlayerSelect();
+    updateScoreboard();
+    requestAnimationFrame(gameLoop);
+});
