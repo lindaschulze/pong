@@ -1,312 +1,196 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
 
-    // Spieler-Konfiguration
-    const playerConfig = {
-        mio: { image: "paddle1.png", name: "Mio", ballSpeed: 3 },
-        mika: { image: "paddle2.png", name: "Mika", ballSpeed: 3 },
-        faultier: { image: "faultier.png", name: "Faultier", ballSpeed: 1.5 },
-        alien: { image: "alien.png", name: "Alien", ballSpeed: 6 },
-        computer: { image: "computer.png", name: "Computer", ballSpeed: 3, isAI: true }
-    };
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 10px;
+    box-sizing: border-box;
+}
 
-    let selectedPlayer1 = "mio";
-    let selectedPlayer2 = "mika";
-    let player1Image, player2Image;
-    let isPlayer2AI = false;
-    
-    // Game constants
-    const PADDLE_HEIGHT = 80;
-    let scaleFactor = 1;
-    let paddle1Width = 0, paddle2Width = 0;
-    
-    // Game objects
-    let paddle1 = { x: 0, y: 0, isLeft: true };
-    let paddle2 = { x: 0, y: 0, isLeft: false };
-    let ball = { x: 0, y: 0, radius: 0, dx: 0, dy: 0, speed: 3 };
-    
-    // Game state
-    let player1Score = 0;
-    let player2Score = 0;
-    let roundNumber = 1;
-    let gamePaused = false;
-    let gameStarted = false;
-    let player1Selected = false;
+/* Spielerauswahl Overlay (Kompakt) */
+#playerSelectOverlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
-    // Responsive resize
-    function resizeCanvas() {
-        const maxWidth = 600, maxHeight = 400;
-        const aspectRatio = maxWidth / maxHeight;
-        
-        let newWidth = Math.min(window.innerWidth * 0.95, maxWidth);
-        let newHeight = newWidth / aspectRatio;
-        
-        if (newHeight > window.innerHeight * 0.8) {
-            newHeight = window.innerHeight * 0.8;
-            newWidth = newHeight * aspectRatio;
-        }
-        
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        scaleFactor = newWidth / maxWidth;
-        updateGamePositions();
-    }
+#playerSelectOverlay div {
+    text-align: center;
+    padding: 20px;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
 
-    function updateGamePositions() {
-        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
-        const scaledBallRadius = 10 * scaleFactor;
-        const scaledSpeed = ball.speed * scaleFactor;
-        
-        paddle1.x = 20 * scaleFactor;
-        paddle1.y = canvas.height / 2 - scaledPaddleHeight / 2;
-        paddle2.x = canvas.width - (paddle2Width || 60) - 20 * scaleFactor;
-        paddle2.y = canvas.height / 2 - scaledPaddleHeight / 2;
-        
-        if (!gameStarted) {
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.radius = scaledBallRadius;
-            ball.dx = scaledSpeed;
-            ball.dy = scaledSpeed;
-        }
-    }
+#playerSelectOverlay h1 {
+    font-size: clamp(24px, 6vw, 32px);
+    margin-bottom: 20px;
+}
 
-    // COMPUTER AI
-    function updateAI() {
-        if (!isPlayer2AI || gamePaused) return;
-        
-        const centerPaddle = paddle2.y + (PADDLE_HEIGHT * scaleFactor) / 2;
-        const centerBall = ball.y;
-        const paddleSpeed = 4 * scaleFactor;
-        
-        if (centerPaddle < centerBall - 10) {
-            paddle2.y += paddleSpeed;
-        } else if (centerPaddle > centerBall + 10) {
-            paddle2.y -= paddleSpeed;
-        }
-        
-        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
-        paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, paddle2.y));
-    }
+#playerButtons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 100%;
+    margin: 0 auto 15px;
+    padding: 0 10px;
+}
 
-    // Spielerauswahl
-    function initPlayerSelect() {
-        const buttons = document.querySelectorAll("#playerButtons button");
-        let player2Selected = false;
-        
-        buttons.forEach(button => {
-            button.addEventListener("click", () => {
-                const player = button.dataset.player;
-                
-                if (!player1Selected) {
-                    selectedPlayer1 = player;
-                    buttons.forEach(b => b.classList.remove("active"));
-                    button.classList.add("active");
-                    player1Selected = true;
-                    document.getElementById("startGameButton").style.display = "block";
-                } else if (!player2Selected) {
-                    selectedPlayer2 = player;
-                    button.classList.add("active", "player2");
-                    player2Selected = true;
-                    isPlayer2AI = playerConfig[player].isAI || false;
-                    document.getElementById("startGameButton").textContent = "Start!";
-                }
-            });
-        });
+#playerButtons button:nth-child(5) {
+    grid-column: 1 / -1;
+}
 
-        document.getElementById("startGameButton").addEventListener("click", startGame);
-    }
+#playerButtons button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid white;
+    border-radius: 12px;
+    padding: 15px 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 100px;
+}
 
-    function startGame() {
-        player1Image = new Image();
-        player2Image = new Image();
-        player1Image.src = playerConfig[selectedPlayer1].image;
-        player2Image.src = playerConfig[selectedPlayer2].image;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed;
-        
-        player1Image.onload = () => {
-            paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
-            updateGamePositions();
-            updateScoreboard();
-        };
-        
-        player2Image.onload = () => {
-            paddle2Width = (player2Image.width / player2Image.height) * PADDLE_HEIGHT * scaleFactor;
-            updateGamePositions();
-        };
+#playerButtons button img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+}
 
-        document.getElementById("player1Name").textContent = playerConfig[selectedPlayer1].name;
-        document.getElementById("player2Name").textContent = playerConfig[selectedPlayer2].name;
-        document.getElementById("playerSelectOverlay").style.display = "none";
-        gameStarted = true;
-    }
+#playerButtons button span {
+    font-size: clamp(12px, 3.5vw, 14px);
+    font-weight: bold;
+    line-height: 1.1;
+}
 
-    // Input handling
-    function handleInput(event) {
-        if (!gameStarted || isPlayer2AI) return;
-        event.preventDefault();
-        
-        const rect = canvas.getBoundingClientRect();
-        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
-        let clientX, clientY;
-        
-        if (event.touches) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-        } else {
-            clientX = event.clientX;
-            clientY = event.clientY;
-        }
-        
-        const touchX = (clientX - rect.left) / rect.width * canvas.width;
-        const touchY = (clientY - rect.top) / rect.height * canvas.height;
-        
-        paddle1.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
-    }
+#playerButtons button:hover,
+#playerButtons button.active {
+    background: white;
+    color: black;
+    transform: scale(1.03);
+}
 
-    canvas.addEventListener("touchmove", handleInput, { passive: false });
-    canvas.addEventListener("mousemove", handleInput);
+#playerSelectOverlay p {
+    font-size: clamp(12px, 3vw, 14px);
+    margin-bottom: 15px;
+    line-height: 1.3;
+}
 
-    // Draw functions
-    function drawPaddle(paddle, image, width) {
-        if (width && image.complete) {
-            ctx.save();
-            if (paddle.isLeft) {
-                ctx.scale(-1, 1);
-                ctx.drawImage(image, -paddle.x - width, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
-            } else {
-                ctx.drawImage(image, paddle.x, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
-            }
-            ctx.restore();
-        }
-    }
+#startGameButton {
+    padding: 12px 25px;
+    font-size: clamp(14px, 4vw, 16px);
+    cursor: pointer;
+    background: #00ff00;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
 
-    function drawBall() {
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        ctx.closePath();
-    }
+/* Scoreboard */
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: clamp(16px, 4vw, 20px);
+    padding: 0 5px;
+    box-sizing: border-box;
+}
 
-    function drawMiddleLine() {
-        ctx.beginPath();
-        ctx.setLineDash([10 * scaleFactor, 10 * scaleFactor]);
-        ctx.moveTo(canvas.width / 2, 0);
-        ctx.lineTo(canvas.width / 2, canvas.height);
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 2 * scaleFactor;
-        ctx.stroke();
-        ctx.closePath();
-    }
+#scoreboard div {
+    flex: 1;
+    text-align: center;
+}
 
-    // Game logic
-    function moveBall() {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+/* Game Canvas */
+#gameCanvas {
+    background-color: #006400;
+    border: 2px solid white;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    touch-action: none;
+}
 
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-            ball.dy *= -1;
-        }
+/* Winner Overlay */
+#winnerOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;
+    padding: 20px;
+}
 
-        if (
-            (ball.x - ball.radius < paddle1.x + paddle1Width &&
-             ball.y > paddle1.y &&
-             ball.y < paddle1.y + scaledPaddleHeight) ||
-            (ball.x + ball.radius > paddle2.x &&
-             ball.y > paddle2.y &&
-             ball.y < paddle2.y + scaledPaddleHeight)
-        ) {
-            ball.dx *= -1;
-        }
+#winnerOverlay div {
+    text-align: center;
+    color: white;
+    padding: 20px;
+    max-width: 90vw;
+}
 
-        if (ball.x - ball.radius < 0) {
-            player2Score++;
-            resetBall();
-        } else if (ball.x + ball.radius > canvas.width) {
-            player1Score++;
-            resetBall();
-        }
+#winnerImage {
+    max-width: 35vw;
+    max-height: 18vh;
+    margin: 10px 0;
+}
 
-        checkWinner();
-    }
+#winnerText {
+    font-size: clamp(22px, 7vw, 32px);
+}
 
-    function resetBall() {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        ball.dx = ball.speed * (ball.dx > 0 ? 1 : -1);
-        ball.dy = ball.speed * (ball.dy > 0 ? 1 : -1);
-        updateScoreboard();
-    }
+#roundText {
+    font-size: clamp(14px, 3.5vw, 18px);
+}
 
-    function updateScoreboard() {
-        document.getElementById("player1Score").textContent = player1Score;
-        document.getElementById("player2Score").textContent = player2Score;
-    }
+#nextRoundButton {
+    padding: 12px 24px;
+    font-size: clamp(16px, 4vw, 18px);
+    cursor: pointer;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    margin-top: 15px;
+}
 
-    function checkWinner() {
-        if (player1Score >= 5 || player2Score >= 5) {
-            gamePaused = true;
-            const winner = player1Score >= 5 ? playerConfig[selectedPlayer1].name : playerConfig[selectedPlayer2].name;
-            const winnerImage = player1Score >= 5 ? player1Image : player2Image;
-            showWinnerOverlay(winner, winnerImage);
-        }
-    }
-
-    function showWinnerOverlay(winner, winnerImage) {
-        const overlay = document.getElementById("winnerOverlay");
-        const winnerText = document.getElementById("winnerText");
-        const winnerImg = document.getElementById("winnerImage");
-        const roundText = document.getElementById("roundText");
-
-        winnerText.textContent = `${winner} gewinnt!`;
-        winnerImg.src = winnerImage.src;
-        roundText.textContent = `Runde ${roundNumber + 1}`;
-        overlay.style.display = "flex";
-    }
-
-    function startNextRound() {
-        gamePaused = false;
-        player1Score = 0;
-        player2Score = 0;
-        roundNumber++;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed + (roundNumber - 1) * 0.5;
-        updateScoreboard();
-        document.getElementById("winnerOverlay").style.display = "none";
-        updateGamePositions();
-    }
-
-    document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
-
-    // Event listeners
-    window.addEventListener('resize', resizeCanvas);
-
-    // Initialize
-    resizeCanvas();
-    initPlayerSelect();
-    updateScoreboard();
-
-    function gameLoop() {
-        if (!gameStarted) {
-            requestAnimationFrame(gameLoop);
-            return;
-        }
-        
-        updateAI();
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawMiddleLine();
-        drawPaddle(paddle1, player1Image, paddle1Width);
-        drawPaddle(paddle2, player2Image, paddle2Width);
-        drawBall();
-        
-        if (!gamePaused) {
-            moveBall();
-        }
-        requestAnimationFrame(gameLoop);
-    }
-    
-    gameLoop();
-});
+#nextRoundButton:hover,
+#nextRoundButton:active {
+    background: lightgray;
+}
