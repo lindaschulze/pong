@@ -21,7 +21,6 @@ body {
     box-sizing: border-box;
 }
 
-/* Spielerauswahl Overlay - Vollständig responsiv */
 #playerSelectOverlay {
     display: flex;
     position: fixed;
@@ -111,7 +110,6 @@ body {
     font-weight: bold;
 }
 
-/* Scoreboard */
 #scoreboard {
     display: flex;
     justify-content: space-between;
@@ -127,7 +125,6 @@ body {
     text-align: center;
 }
 
-/* Game Canvas */
 #gameCanvas {
     background-color: #006400;
     border: 2px solid white;
@@ -137,7 +134,6 @@ body {
     touch-action: none;
 }
 
-/* Winner Overlay */
 #winnerOverlay {
     display: none;
     position: fixed;
