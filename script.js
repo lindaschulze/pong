@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration (Computer hinzugefügt)
+    // Spieler-Konfiguration
     const playerConfig = {
         mio: { image: "paddle1.png", name: "Mio", ballSpeed: 3 },
         mika: { image: "paddle2.png", name: "Mika", ballSpeed: 3 },
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // COMPUTER AI - Automatische Paddle-Steuerung
+    // COMPUTER AI
     function updateAI() {
         if (!isPlayer2AI || gamePaused) return;
         
@@ -86,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
             paddle2.y -= paddleSpeed;
         }
         
-        // Paddle innerhalb Canvas halten
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
         paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, paddle2.y));
     }
@@ -111,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     button.classList.add("active", "player2");
                     player2Selected = true;
                     isPlayer2AI = playerConfig[player].isAI || false;
-                    document.getElementById("startGameButton").textContent = "Los geht's!";
+                    document.getElementById("startGameButton").textContent = "Start!";
                 }
             });
         });
@@ -143,9 +142,9 @@ document.addEventListener("DOMContentLoaded", () => {
         gameStarted = true;
     }
 
-    // Input handling (nur für Player 1, wenn kein AI)
+    // Input handling
     function handleInput(event) {
-        if (!gameStarted || isPlayer2AI) return; // AI übernimmt Paddle 2
+        if (!gameStarted || isPlayer2AI) return;
         event.preventDefault();
         
         const rect = canvas.getBoundingClientRect();
@@ -163,19 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const touchX = (clientX - rect.left) / rect.width * canvas.width;
         const touchY = (clientY - rect.top) / rect.height * canvas.height;
         
-        // Nur linker Paddle steuerbar (rechts = AI)
         paddle1.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
     }
 
     canvas.addEventListener("touchmove", handleInput, { passive: false });
     canvas.addEventListener("mousemove", handleInput);
 
-    // Draw functions (mit Spiegelung)
+    // Draw functions
     function drawPaddle(paddle, image, width) {
         if (width && image.complete) {
             ctx.save();
             if (paddle.isLeft) {
-                ctx.scale(-1, 1); // Spiegeln für linke Seite
+                ctx.scale(-1, 1);
                 ctx.drawImage(image, -paddle.x - width, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
             } else {
                 ctx.drawImage(image, paddle.x, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
@@ -209,12 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ball.y += ball.dy;
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
 
-        // Wand-Kollision
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
             ball.dy *= -1;
         }
 
-        // Paddle-Kollision
         if (
             (ball.x - ball.radius < paddle1.x + paddle1Width &&
              ball.y > paddle1.y &&
@@ -226,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ball.dx *= -1;
         }
 
-        // Scoring
         if (ball.x - ball.radius < 0) {
             player2Score++;
             resetBall();
@@ -266,9 +261,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const winnerImg = document.getElementById("winnerImage");
         const roundText = document.getElementById("roundText");
 
-        winnerText.textContent = `${winner} gewinnt diese Runde!`;
+        winnerText.textContent = `${winner} gewinnt!`;
         winnerImg.src = winnerImage.src;
-        roundText.textContent = `Nächste Runde: ${roundNumber + 1}`;
+        roundText.textContent = `Runde ${roundNumber + 1}`;
         overlay.style.display = "flex";
     }
 
@@ -299,7 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         
-        // AI Update
         updateAI();
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
