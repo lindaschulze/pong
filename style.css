@@ -1,4 +1,4 @@
-/* General Reset */
+/* Bestehender CSS + Spielerauswahl */
 body {
     margin: 0;
     padding: 0;
@@ -22,7 +22,70 @@ body {
     box-sizing: border-box;
 }
 
-/* Scoreboard */
+/* Spielerauswahl Overlay */
+#playerSelectOverlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#playerSelectOverlay div {
+    text-align: center;
+    padding: 30px;
+}
+
+#playerSelectOverlay h1 {
+    font-size: clamp(28px, 8vw, 40px);
+    margin-bottom: 30px;
+}
+
+#playerButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 500px;
+}
+
+#playerButtons button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid white;
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#playerButtons button img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+#playerButtons button span {
+    font-size: clamp(14px, 4vw, 16px);
+    font-weight: bold;
+}
+
+#playerButtons button:hover,
+#playerButtons button.active {
+    background: white;
+    color: black;
+}
+
+/* Bestehender Scoreboard, Canvas, Winner CSS bleibt gleich */
 #scoreboard {
     display: flex;
     justify-content: space-between;
@@ -33,7 +96,11 @@ body {
     box-sizing: border-box;
 }
 
-/* Game Canvas */
+#scoreboard div {
+    flex: 1;
+    text-align: center;
+}
+
 #gameCanvas {
     background-color: #006400;
     border: 2px solid white;
@@ -43,7 +110,6 @@ body {
     touch-action: none;
 }
 
-/* Winner Overlay */
 #winnerOverlay {
     display: none;
     position: fixed;
