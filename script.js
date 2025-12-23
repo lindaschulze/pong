@@ -2,13 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration (PIXELS PER SECOND - DELTA-TIME!)
+    // Spieler-Konfiguration (FIXE 60FPS Geschwindigkeit)
     const playerConfig = {
-        mio: { image: "paddle1.png", name: "Mio", pixelsPerSecond: 240, isAI: false },
-        mika: { image: "paddle2.png", name: "Mika", pixelsPerSecond: 240, isAI: false },
-        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerSecond: 120, isAI: false },
-        alien: { image: "alien.png", name: "Blub", pixelsPerSecond: 480, isAI: false },
-        roboter: { image: "computer.png", name: "Robo", pixelsPerSecond: 300, isAI: true }
+        mio: { image: "paddle1.png", name: "Mio", pixelsPerFrame: 3, isAI: false },
+        mika: { image: "paddle2.png", name: "Mika", pixelsPerFrame: 3, isAI: false },
+        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerFrame: 1.5, isAI: false },
+        alien: { image: "alien.png", name: "Blub", pixelsPerFrame: 6, isAI: false },
+        roboter: { image: "computer.png", name: "Robo", pixelsPerFrame: 4, isAI: true }
     };
 
     let selectedPlayer1 = "mio";
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
-    let pixelsPerSecond = 240; // Wird vom langsamsten Spieler bestimmt
+    let pixelsPerFrame = 3; // Wird vom langsamsten Spieler bestimmt
     
     // Game objects
     let paddle1 = { x: 0, y: 0, isLeft: true };
@@ -34,16 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
     let gameStarted = false;
     let player1Selected = false;
     let player2Selected = false;
-    let lastTime = 0;
 
-    // Geschwindigkeit des LANGSAMSTEN Spielers (pixelsPerSecond)
+    // Geschwindigkeit des LANGSAMSTEN Spielers
     function getSlowestPlayerSpeed() {
-        const speed1 = playerConfig[selectedPlayer1].pixelsPerSecond;
-        const speed2 = playerConfig[selectedPlayer2].pixelsPerSecond;
+        const speed1 = playerConfig[selectedPlayer1].pixelsPerFrame;
+        const speed2 = playerConfig[selectedPlayer2].pixelsPerFrame;
         return Math.min(speed1, speed2);
     }
 
-    // Responsive resize (NUR VISUELLE Skalierung)
+    // FIXED 60FPS LOOP
+    let lastFrameTime = 0;
+    const FRAME_TIME = 1000 / 60; // 16.666ms pro Frame
+
     function resizeCanvas() {
         const maxWidth = 600, maxHeight = 400;
         const aspectRatio = maxWidth / maxHeight;
@@ -74,27 +76,24 @@ document.addEventListener("DOMContentLoaded", () => {
         ball.radius = scaledBallRadius;
     }
 
-    // AI für Robo (DELTA-TIME)
-    function updateAI(deltaTime) {
+    // AI für Robo (FIXED Geschwindigkeit)
+    function updateAI() {
         if (!playerConfig[selectedPlayer2].isAI && !playerConfig[selectedPlayer1].isAI) return;
         
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
         const aiPaddle = playerConfig[selectedPlayer2].isAI ? paddle2 : paddle1;
         const targetY = ball.y - scaledPaddleHeight / 2;
         
-        const aiPixelsPerSecond = 180; // AI Geschwindigkeit
-        const aiSpeed = (aiPixelsPerSecond * deltaTime) / 1000;
-        
+        const aiMoveSpeed = 2.5; // FIXED pixels per frame
         if (aiPaddle.y + scaledPaddleHeight / 2 < targetY) {
-            aiPaddle.y += aiSpeed;
+            aiPaddle.y += aiMoveSpeed;
         } else if (aiPaddle.y + scaledPaddleHeight / 2 > targetY) {
-            aiPaddle.y -= aiSpeed;
+            aiPaddle.y -= aiMoveSpeed;
         }
         
         aiPaddle.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, aiPaddle.y));
     }
 
-    // 2-Spieler-Auswahl
     function initPlayerSelect() {
         const buttons = document.querySelectorAll("#playerButtons button");
         
@@ -130,8 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
         
-        // GESCHWINDIGKEIT = LANGSAMSTER SPIELER (pixelsPerSecond)
-        pixelsPerSecond = getSlowestPlayerSpeed();
+        pixelsPerFrame = getSlowestPlayerSpeed();
         
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
@@ -151,7 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resetBall();
     }
 
-    // Input handling
     function handleInput(event) {
         if (!gameStarted || (playerConfig[selectedPlayer1].isAI && playerConfig[selectedPlayer2].isAI)) return;
         event.preventDefault();
@@ -181,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener("touchmove", handleInput, { passive: false });
     canvas.addEventListener("mousemove", handleInput);
 
-    // Draw functions
     function drawPaddle(paddle, image, width) {
         if (width && image && image.complete) {
             ctx.save();
@@ -214,11 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Game logic - DELTA-TIME (PERFEKT GLEICH auf allen Geräten!)
-    function moveBall(deltaTime) {
-        const ballSpeed = (pixelsPerSecond * deltaTime) / 1000;
-        ball.x += ball.dx * ballSpeed;
-        ball.y += ball.dy * ballSpeed;
+    function moveBall() {
+        // **FIXED PIXELS PER FRAME** - KEIN DeltaTime!
+        ball.x += ball.dx;
+        ball.y += ball.dy;
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
 
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
@@ -250,8 +245,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = Math.random() > 0.5 ? 1 : -1;
-        ball.dy = (Math.random() > 0.5 ? 1 : -1) * 0.7;
+        ball.dx = pixelsPerFrame * (Math.random() > 0.5 ? 1 : -1);
+        ball.dy = (pixelsPerFrame * 0.7) * (Math.random() > 0.5 ? 1 : -1);
         updateScoreboard();
     }
 
@@ -286,8 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        // Runden-Bonus: +60 pixelsPerSecond pro Runde
-        pixelsPerSecond = getSlowestPlayerSpeed() + (roundNumber - 1) * 60;
+        pixelsPerFrame = getSlowestPlayerSpeed() + (roundNumber - 1) * 0.5;
         updateScoreboard();
         document.getElementById("winnerOverlay").style.display = "none";
         updateGamePositions();
@@ -295,21 +289,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
-
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize
-    resizeCanvas();
-    initPlayerSelect();
-    updateScoreboard();
-
-    // **DELTA-TIME GAME LOOP** - 100% GLEICH auf allen Geräten!
-    function gameLoop(currentTime) {
-        if (lastTime === 0) {
-            lastTime = currentTime;
+    // **60FPS LOCKED GAME LOOP**
+    function gameLoop(timestamp) {
+        // FIXED FRAME TIME - KEIN RAF Timing Problem!
+        if (timestamp - lastFrameTime < FRAME_TIME) {
+            requestAnimationFrame(gameLoop);
+            return;
         }
-        const deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
+        lastFrameTime = timestamp;
 
         if (!gameStarted) {
             requestAnimationFrame(gameLoop);
@@ -323,11 +312,15 @@ document.addEventListener("DOMContentLoaded", () => {
         drawBall();
         
         if (!gamePaused) {
-            updateAI(deltaTime);
-            moveBall(deltaTime);
+            updateAI();
+            moveBall();
         }
         requestAnimationFrame(gameLoop);
     }
-    
+
+    // Initialize
+    resizeCanvas();
+    initPlayerSelect();
+    updateScoreboard();
     requestAnimationFrame(gameLoop);
 });
