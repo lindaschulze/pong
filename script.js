@@ -2,13 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration
+    // Spieler-Konfiguration (PIXELS PER SECOND - DELTA-TIME!)
     const playerConfig = {
-        mio: { image: "paddle1.png", name: "Mio", pixelsPerFrame: 4, isAI: false },
-        mika: { image: "paddle2.png", name: "Mika", pixelsPerFrame: 4, isAI: false },
-        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerFrame: 2, isAI: false },
-        alien: { image: "alien.png", name: "Blub", pixelsPerFrame: 8, isAI: false },
-        roboter: { image: "computer.png", name: "Robo", pixelsPerFrame: 5, isAI: true }
+        mio: { image: "paddle1.png", name: "Mio", pixelsPerSecond: 240, isAI: false },
+        mika: { image: "paddle2.png", name: "Mika", pixelsPerSecond: 240, isAI: false },
+        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerSecond: 120, isAI: false },
+        alien: { image: "alien.png", name: "Blub", pixelsPerSecond: 480, isAI: false },
+        roboter: { image: "computer.png", name: "Robo", pixelsPerSecond: 300, isAI: true }
     };
 
     let selectedPlayer1 = "mio";
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
-    let pixelsPerFrame = 4; // Wird vom langsamsten Spieler bestimmt
+    let pixelsPerSecond = 240; // Wird vom langsamsten Spieler bestimmt
     
     // Game objects
     let paddle1 = { x: 0, y: 0, isLeft: true };
@@ -34,12 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let gameStarted = false;
     let player1Selected = false;
     let player2Selected = false;
+    let lastTime = 0;
 
-    // Funktion: Geschwindigkeit des LANGSAMSTEN Spielers
+    // Geschwindigkeit des LANGSAMSTEN Spielers (pixelsPerSecond)
     function getSlowestPlayerSpeed() {
-        const speed1 = playerConfig[selectedPlayer1].pixelsPerFrame;
-        const speed2 = playerConfig[selectedPlayer2].pixelsPerFrame;
-        return Math.min(speed1, speed2); // Langsamster bestimmt!
+        const speed1 = playerConfig[selectedPlayer1].pixelsPerSecond;
+        const speed2 = playerConfig[selectedPlayer2].pixelsPerSecond;
+        return Math.min(speed1, speed2);
     }
 
     // Responsive resize (NUR VISUELLE Skalierung)
@@ -73,15 +74,17 @@ document.addEventListener("DOMContentLoaded", () => {
         ball.radius = scaledBallRadius;
     }
 
-    // AI für Robo
-    function updateAI() {
+    // AI für Robo (DELTA-TIME)
+    function updateAI(deltaTime) {
         if (!playerConfig[selectedPlayer2].isAI && !playerConfig[selectedPlayer1].isAI) return;
         
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
         const aiPaddle = playerConfig[selectedPlayer2].isAI ? paddle2 : paddle1;
         const targetY = ball.y - scaledPaddleHeight / 2;
         
-        const aiSpeed = 3;
+        const aiPixelsPerSecond = 180; // AI Geschwindigkeit
+        const aiSpeed = (aiPixelsPerSecond * deltaTime) / 1000;
+        
         if (aiPaddle.y + scaledPaddleHeight / 2 < targetY) {
             aiPaddle.y += aiSpeed;
         } else if (aiPaddle.y + scaledPaddleHeight / 2 > targetY) {
@@ -127,8 +130,8 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
         
-        // GESCHWINDIGKEIT = LANGSAMSTER SPIELER
-        pixelsPerFrame = getSlowestPlayerSpeed();
+        // GESCHWINDIGKEIT = LANGSAMSTER SPIELER (pixelsPerSecond)
+        pixelsPerSecond = getSlowestPlayerSpeed();
         
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
@@ -211,10 +214,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Game logic
-    function moveBall() {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+    // Game logic - DELTA-TIME (PERFEKT GLEICH auf allen Geräten!)
+    function moveBall(deltaTime) {
+        const ballSpeed = (pixelsPerSecond * deltaTime) / 1000;
+        ball.x += ball.dx * ballSpeed;
+        ball.y += ball.dy * ballSpeed;
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
 
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
@@ -246,8 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = pixelsPerFrame * (Math.random() > 0.5 ? 1 : -1);
-        ball.dy = (pixelsPerFrame * 0.7) * (Math.random() > 0.5 ? 1 : -1);
+        ball.dx = Math.random() > 0.5 ? 1 : -1;
+        ball.dy = (Math.random() > 0.5 ? 1 : -1) * 0.7;
         updateScoreboard();
     }
 
@@ -282,8 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        // Runden-Bonus auf langsamste Basis-Geschwindigkeit
-        pixelsPerFrame = getSlowestPlayerSpeed() + (roundNumber - 1);
+        // Runden-Bonus: +60 pixelsPerSecond pro Runde
+        pixelsPerSecond = getSlowestPlayerSpeed() + (roundNumber - 1) * 60;
         updateScoreboard();
         document.getElementById("winnerOverlay").style.display = "none";
         updateGamePositions();
@@ -299,7 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
     initPlayerSelect();
     updateScoreboard();
 
-    function gameLoop() {
+    // **DELTA-TIME GAME LOOP** - 100% GLEICH auf allen Geräten!
+    function gameLoop(currentTime) {
+        if (lastTime === 0) {
+            lastTime = currentTime;
+        }
+        const deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
         if (!gameStarted) {
             requestAnimationFrame(gameLoop);
             return;
@@ -312,11 +323,11 @@ document.addEventListener("DOMContentLoaded", () => {
         drawBall();
         
         if (!gamePaused) {
-            updateAI();
-            moveBall();
+            updateAI(deltaTime);
+            moveBall(deltaTime);
         }
         requestAnimationFrame(gameLoop);
     }
     
-    gameLoop();
+    requestAnimationFrame(gameLoop);
 });
