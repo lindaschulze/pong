@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration
+    // Spieler-Konfiguration (Ballgeschwindigkeit KONSTANT, unabhängig von Bildschirmgröße)
     const playerConfig = {
         mio: { image: "paddle1.png", name: "Mio", ballSpeed: 3, isAI: false },
         mika: { image: "paddle2.png", name: "Mika", ballSpeed: 3, isAI: false },
@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
+    let baseBallSpeed = 3; // Basis-Geschwindigkeit (konstant)
     
     // Game objects
     let paddle1 = { x: 0, y: 0, isLeft: true };
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let player1Selected = false;
     let player2Selected = false;
 
-    // Responsive resize
+    // Responsive resize (Ball-Radius skaliert, aber KEINE Geschwindigkeit!)
     function resizeCanvas() {
         const maxWidth = 600, maxHeight = 400;
         const aspectRatio = maxWidth / maxHeight;
@@ -55,8 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateGamePositions() {
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
-        const scaledBallRadius = 10 * scaleFactor;
-        const scaledSpeed = ball.speed * scaleFactor;
+        const scaledBallRadius = 10 * scaleFactor; // Nur VISUELLE Größe skaliert
         
         paddle1.x = 20 * scaleFactor;
         paddle1.y = canvas.height / 2 - scaledPaddleHeight / 2;
@@ -66,9 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!gameStarted) {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
-            ball.radius = scaledBallRadius;
-            ball.dx = scaledSpeed;
-            ball.dy = scaledSpeed;
+            ball.radius = scaledBallRadius; // VISUELLE Skalierung
+            // Geschwindigkeit BLEIBT KONSTANT (nicht scaleFactor!)
+            ball.dx = baseBallSpeed;
+            ball.dy = baseBallSpeed;
         }
     }
 
@@ -80,8 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const aiPaddle = playerConfig[selectedPlayer2].isAI ? paddle2 : paddle1;
         const targetY = ball.y - scaledPaddleHeight / 2;
         
-        // AI folgt dem Ball mit etwas Verzögerung
-        const speed = 0.15 * scaleFactor;
+        const speed = 0.15; // AI-Geschwindigkeit KONSTANT
         if (aiPaddle.y + scaledPaddleHeight / 2 < targetY) {
             aiPaddle.y += speed * canvas.height;
         } else if (aiPaddle.y + scaledPaddleHeight / 2 > targetY) {
@@ -126,7 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
         player2Image = new Image();
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed;
+        
+        // Ball-Geschwindigkeit NUR von Spielern abhängig (Player1 bestimmt)
+        baseBallSpeed = playerConfig[selectedPlayer1].ballSpeed;
+        ball.speed = baseBallSpeed;
         
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
@@ -208,8 +211,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Game logic
+    // Game logic (KONSTANTE Geschwindigkeit!)
     function moveBall() {
+        // Ball-Geschwindigkeit KONSTANT - nur Spieler beeinflussen!
         ball.x += ball.dx;
         ball.y += ball.dy;
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
@@ -246,8 +250,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetBall() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        ball.dx = ball.speed * (ball.dx > 0 ? 1 : -1);
-        ball.dy = ball.speed * (ball.dy > 0 ? 1 : -1);
+        // Geschwindigkeit WIEDER KONSTANT!
+        ball.dx = baseBallSpeed * (ball.dx > 0 ? 1 : -1);
+        ball.dy = baseBallSpeed * (ball.dy > 0 ? 1 : -1);
         updateScoreboard();
     }
 
@@ -282,7 +287,9 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed + (roundNumber - 1) * 0.5;
+        // Geschwindigkeit nur von Spieler + Runden BONUS (konstant!)
+        baseBallSpeed = playerConfig[selectedPlayer1].ballSpeed + (roundNumber - 1) * 0.5;
+        ball.speed = baseBallSpeed;
         updateScoreboard();
         document.getElementById("winnerOverlay").style.display = "none";
         updateGamePositions();
@@ -311,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
         drawBall();
         
         if (!gamePaused) {
-            updateAI(); // AI Update
+            updateAI();
             moveBall();
         }
         requestAnimationFrame(gameLoop);
