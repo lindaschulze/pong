@@ -4,32 +4,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Spieler-Konfiguration
     const playerConfig = {
-        mio: { image: 'paddle1.png', name: 'Mio', ballSpeed: 3 },
-        mika: { image: 'paddle2.png', name: 'Mika', ballSpeed: 3 },
-        faultier: { image: 'faultier.png', name: 'Faultier', ballSpeed: 1.5 },
-        alien: { image: 'alien.png', name: 'Alien', ballSpeed: 6 }
+        mio: { image: "paddle1.png", name: "Mio", ballSpeed: 3 },
+        mika: { image: "paddle2.png", name: "Mika", ballSpeed: 3 },
+        faultier: { image: "faultier.png", name: "Faultier", ballSpeed: 1.5 },
+        alien: { image: "alien.png", name: "Alien", ballSpeed: 6 }
     };
 
-    let selectedPlayer1 = 'mio';
-    let selectedPlayer2 = 'mika';
+    let selectedPlayer1 = "mio";
+    let selectedPlayer2 = "mika";
     let player1Image, player2Image;
-
+    
     // Game constants
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
-
+    
     // Game objects
-    let paddle1 = { x: 0, y: 0 };
-    let paddle2 = { x: 0, y: 0 };
+    let paddle1 = { x: 0, y: 0, isLeft: true };
+    let paddle2 = { x: 0, y: 0, isLeft: false };
     let ball = { x: 0, y: 0, radius: 0, dx: 0, dy: 0, speed: 3 };
-
-    let player1Score = 0, player2Score = 0, roundNumber = 1, gamePaused = false;
+    
+    // Game state
+    let player1Score = 0;
+    let player2Score = 0;
+    let roundNumber = 1;
+    let gamePaused = false;
     let gameStarted = false;
+    let player1Selected = false;
 
     // Responsive resize
     function resizeCanvas() {
-        const maxWidth = 600, maxHeight = 400, aspectRatio = maxWidth / maxHeight;
+        const maxWidth = 600, maxHeight = 400;
+        const aspectRatio = maxWidth / maxHeight;
+        
         let newWidth = Math.min(window.innerWidth * 0.95, maxWidth);
         let newHeight = newWidth / aspectRatio;
         
@@ -41,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         canvas.width = newWidth;
         canvas.height = newHeight;
         scaleFactor = newWidth / maxWidth;
-        
         updateGamePositions();
     }
 
@@ -50,41 +56,45 @@ document.addEventListener("DOMContentLoaded", () => {
         const scaledBallRadius = 10 * scaleFactor;
         const scaledSpeed = ball.speed * scaleFactor;
         
-        paddle1 = { x: 20 * scaleFactor, y: canvas.height / 2 - scaledPaddleHeight / 2 };
-        paddle2 = { x: canvas.width - (paddle2Width || 60) - 20 * scaleFactor, y: canvas.height / 2 - scaledPaddleHeight / 2 };
-        ball = { x: canvas.width / 2, y: canvas.height / 2, radius: scaledBallRadius, dx: scaledSpeed, dy: scaledSpeed, speed: scaledSpeed };
+        paddle1.x = 20 * scaleFactor;
+        paddle1.y = canvas.height / 2 - scaledPaddleHeight / 2;
+        paddle2.x = canvas.width - (paddle2Width || 60) - 20 * scaleFactor;
+        paddle2.y = canvas.height / 2 - scaledPaddleHeight / 2;
+        
+        if (!gameStarted) {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.radius = scaledBallRadius;
+            ball.dx = scaledSpeed;
+            ball.dy = scaledSpeed;
+        }
     }
 
     // Spielerauswahl
     function initPlayerSelect() {
-        const buttons = document.querySelectorAll('#playerButtons button');
+        const buttons = document.querySelectorAll("#playerButtons button");
+        let player2Selected = false;
+        
         buttons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener("click", () => {
                 const player = button.dataset.player;
-                const isPlayer1 = !button.classList.contains('player2');
                 
-                if (isPlayer1) {
+                if (!player1Selected) {
                     selectedPlayer1 = player;
-                    buttons.forEach(b => b.classList.remove('active'));
-                    button.classList.add('active');
-                } else {
+                    buttons.forEach(b => b.classList.remove("active"));
+                    button.classList.add("active");
+                    player1Selected = true;
+                    document.getElementById("startGameButton").style.display = "block";
+                } else if (!player2Selected) {
                     selectedPlayer2 = player;
-                    button.classList.add('player2', 'active');
+                    button.classList.add("active", "player2");
+                    player2Selected = true;
+                    document.getElementById("startGameButton").textContent = "Los geht's!";
                 }
             });
         });
 
-        // Doppeltouch für Player 2
-        let player1Selected = false;
-        document.getElementById('playerButtons').addEventListener('touchstart', (e) => {
-            if (player1Selected) {
-                e.target.closest('button').classList.add('player2');
-            } else {
-                player1Selected = true;
-                buttons.forEach(b => b.classList.remove('active', 'player2'));
-                e.target.closest('button').classList.add('active');
-            }
-        });
+        document.getElementById("startGameButton").addEventListener("click", startGame);
     }
 
     function startGame() {
@@ -92,32 +102,30 @@ document.addEventListener("DOMContentLoaded", () => {
         player2Image = new Image();
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
-        ball.speed = playerConfig[selectedPlayer1].ballSpeed;
-
+        ball.speed = playerConfig[selectedPlayer1].ballSpeed; // Ball-Geschwindigkeit basierend auf Spieler 1
+        
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
+            updateGamePositions();
             updateScoreboard();
-            document.getElementById('playerSelectOverlay').style.display = 'none';
-            gameStarted = true;
-            gameLoop();
         };
-
+        
         player2Image.onload = () => {
             paddle2Width = (player2Image.width / player2Image.height) * PADDLE_HEIGHT * scaleFactor;
             updateGamePositions();
         };
 
-        document.getElementById('player1Name').textContent = `${playerConfig[selectedPlayer1].name}: `;
-        document.getElementById('player2Name').textContent = `${playerConfig[selectedPlayer2].name}: `;
+        document.getElementById("player1Name").textContent = playerConfig[selectedPlayer1].name;
+        document.getElementById("player2Name").textContent = playerConfig[selectedPlayer2].name;
+        document.getElementById("playerSelectOverlay").style.display = "none";
+        gameStarted = true;
     }
 
-    // Controls
-    canvas.addEventListener("touchmove", handleInput, { passive: false });
-    canvas.addEventListener("mousemove", handleInput);
-
+    // Input handling
     function handleInput(event) {
         if (!gameStarted) return;
         event.preventDefault();
+        
         const rect = canvas.getBoundingClientRect();
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
         let clientX, clientY;
@@ -140,10 +148,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Draw functions (unverändert)
+    canvas.addEventListener("touchmove", handleInput, { passive: false });
+    canvas.addEventListener("mousemove", handleInput);
+
+    // Draw functions
     function drawPaddle(paddle, image, width) {
         if (width && image.complete) {
-            ctx.drawImage(image, paddle.x, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
+            ctx.save();
+            if (paddle.isLeft) {
+                ctx.scale(-1, 1); // Spiegeln für linke Seite
+                ctx.drawImage(image, -paddle.x - width, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
+            } else {
+                ctx.drawImage(image, paddle.x, paddle.y, width, PADDLE_HEIGHT * scaleFactor);
+            }
+            ctx.restore();
         }
     }
 
@@ -166,16 +184,18 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Game logic (unverändert)
+    // Game logic
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
 
+        // Wand-Kollision
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
             ball.dy *= -1;
         }
 
+        // Paddle-Kollision
         if (
             (ball.x - ball.radius < paddle1.x + paddle1Width &&
              ball.y > paddle1.y &&
@@ -187,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ball.dx *= -1;
         }
 
+        // Scoring
         if (ball.x - ball.radius < 0) {
             player2Score++;
             resetBall();
@@ -245,18 +266,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
 
-    // Initialize
+    // Event listeners
     window.addEventListener('resize', resizeCanvas);
-    initPlayerSelect();
+
+    // Initialize
     resizeCanvas();
+    initPlayerSelect();
     updateScoreboard();
 
-    // Spiel startet nach Auswahl (Touch/Click auf Canvas oder Double-Tap)
-    canvas.addEventListener('click', startGame);
-    canvas.addEventListener('touchend', startGame);
-
     function gameLoop() {
-        if (!gameStarted) return;
+        if (!gameStarted) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawMiddleLine();
         drawPaddle(paddle1, player1Image, paddle1Width);
@@ -268,4 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         requestAnimationFrame(gameLoop);
     }
+    
+    gameLoop();
 });
