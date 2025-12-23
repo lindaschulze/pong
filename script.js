@@ -6,9 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const playerConfig = {
         mio: { image: "paddle1.png", name: "Mio", pixelsPerFrame: 4, isAI: false },
         mika: { image: "paddle2.png", name: "Mika", pixelsPerFrame: 4, isAI: false },
-        faultier: { image: "faultier.png", name: "Faultier", pixelsPerFrame: 2, isAI: false },
-        alien: { image: "alien.png", name: "Alien", pixelsPerFrame: 8, isAI: false },
-        roboter: { image: "roboter.png", name: "Roboter", pixelsPerFrame: 5, isAI: true }
+        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerFrame: 2, isAI: false },
+        alien: { image: "alien.png", name: "Blub", pixelsPerFrame: 8, isAI: false },
+        roboter: { image: "computer.png", name: "Robo", pixelsPerFrame: 5, isAI: true }
     };
 
     let selectedPlayer1 = "mio";
@@ -166,3 +166,4 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (touchX >= canvas.width / 2 && !playerConfig[selectedPlayer2].isAI) {
             paddle2.y = Math.max(0, Math.min(canvas.height - scaledPaddleHeight, touchY - scaledPaddleHeight / 2));
         }
+
