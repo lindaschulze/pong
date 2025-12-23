@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // NEUE BEZEICHNUNGEN - geräteunabhängige pixelsPerFrame!
+    // Spieler-Konfiguration
     const playerConfig = {
         mio: { image: "paddle1.png", name: "Mio", pixelsPerFrame: 4, isAI: false },
         mika: { image: "paddle2.png", name: "Mika", pixelsPerFrame: 4, isAI: false },
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
-    let pixelsPerFrame = 4;
+    let pixelsPerFrame = 4; // Wird vom langsamsten Spieler bestimmt
     
     // Game objects
     let paddle1 = { x: 0, y: 0, isLeft: true };
@@ -34,6 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let gameStarted = false;
     let player1Selected = false;
     let player2Selected = false;
+
+    // Funktion: Geschwindigkeit des LANGSAMSTEN Spielers
+    function getSlowestPlayerSpeed() {
+        const speed1 = playerConfig[selectedPlayer1].pixelsPerFrame;
+        const speed2 = playerConfig[selectedPlayer2].pixelsPerFrame;
+        return Math.min(speed1, speed2); // Langsamster bestimmt!
+    }
 
     // Responsive resize (NUR VISUELLE Skalierung)
     function resizeCanvas() {
@@ -120,7 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Image.src = playerConfig[selectedPlayer1].image;
         player2Image.src = playerConfig[selectedPlayer2].image;
         
-        pixelsPerFrame = playerConfig[selectedPlayer1].pixelsPerFrame;
+        // GESCHWINDIGKEIT = LANGSAMSTER SPIELER
+        pixelsPerFrame = getSlowestPlayerSpeed();
         
         player1Image.onload = () => {
             paddle1Width = (player1Image.width / player1Image.height) * PADDLE_HEIGHT * scaleFactor;
@@ -203,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    // Game logic - PIXELS PER FRAME
+    // Game logic
     function moveBall() {
         ball.x += ball.dx;
         ball.y += ball.dy;
@@ -274,7 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
         player1Score = 0;
         player2Score = 0;
         roundNumber++;
-        pixelsPerFrame = playerConfig[selectedPlayer1].pixelsPerFrame + (roundNumber - 1);
+        // Runden-Bonus auf langsamste Basis-Geschwindigkeit
+        pixelsPerFrame = getSlowestPlayerSpeed() + (roundNumber - 1);
         updateScoreboard();
         document.getElementById("winnerOverlay").style.display = "none";
         updateGamePositions();
