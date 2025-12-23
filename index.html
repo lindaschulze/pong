@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mioka Pong</title>
+    <title>Mioka Pong v3</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,21 +23,28 @@
                     </button>
                     <button data-player="faultier">
                         <img src="faultier.png" alt="Faultier">
-                        <span>Faultier (Langsam)</span>
+                        <span>Faultier<br>(Langsam)</span>
                     </button>
                     <button data-player="alien">
                         <img src="alien.png" alt="Alien">
-                        <span>Alien (Schnell)</span>
+                        <span>Alien<br>(Schnell)</span>
                     </button>
                 </div>
+                <p>Tippe 1x für Spieler 1 (links), 2x für Spieler 2 (rechts)</p>
+                <button id="startGameButton" style="display:none;">Spiel starten!</button>
             </div>
         </div>
 
         <!-- Scoreboard -->
         <div id="scoreboard">
-            <div id="player1Name">Spieler 1: <span id="player1Score">0</span></div>
-            <div id="player2Name">Spieler 2: <span id="player2Score">0</span></div>
+            <div>
+                <span id="player1Name">Spieler 1</span>: <span id="player1Score">0</span>
+            </div>
+            <div>
+                <span id="player2Name">Spieler 2</span>: <span id="player2Score">0</span>
+            </div>
         </div>
+        
         <canvas id="gameCanvas"></canvas>
         
         <!-- Winner Overlay -->
