@@ -2,31 +2,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Spieler-Konfiguration (FIXE 60FPS Geschwindigkeit)
+    // Spieler-Konfiguration (60FPS, pixelsPerFrame)
     const playerConfig = {
-        mio: { image: "paddle1.png", name: "Mio", pixelsPerFrame: 3, isAI: false },
-        mika: { image: "paddle2.png", name: "Mika", pixelsPerFrame: 3, isAI: false },
-        faultier: { image: "faultier.png", name: "Faulenzo", pixelsPerFrame: 1.5, isAI: false },
-        alien: { image: "alien.png", name: "Blub", pixelsPerFrame: 6, isAI: false },
-        roboter: { image: "computer.png", name: "Robo", pixelsPerFrame: 4, isAI: true }
+        mio:     { image: "paddle1.png", name: "Mio",     pixelsPerFrame: 3,   isAI: false },
+        mika:    { image: "paddle2.png", name: "Mika",    pixelsPerFrame: 3,   isAI: false },
+        faultier:{ image: "faultier.png",name: "Faulenzo",pixelsPerFrame: 1.5, isAI: false },
+        alien:   { image: "alien.png",   name: "Blub",    pixelsPerFrame: 6,   isAI: false },
+        roboter: { image: "computer.png",name: "Robo",    pixelsPerFrame: 4,   isAI: true  },
+        nugget:  { image: "nugget.png",  name: "Nugget",  pixelsPerFrame: 3,   isAI: false } // wie Mio/Mika
     };
 
     let selectedPlayer1 = "mio";
     let selectedPlayer2 = "mika";
     let player1Image, player2Image;
     
-    // Game constants
     const PADDLE_HEIGHT = 80;
     let scaleFactor = 1;
     let paddle1Width = 0, paddle2Width = 0;
-    let pixelsPerFrame = 3; // Wird vom langsamsten Spieler bestimmt
+    let pixelsPerFrame = 3; // vom langsamsten Spieler
     
-    // Game objects
+    // Hauptball + Extra-Bälle (Nugget)
+    let balls = []; // Array aller Bälle
+
     let paddle1 = { x: 0, y: 0, isLeft: true };
     let paddle2 = { x: 0, y: 0, isLeft: false };
-    let ball = { x: 0, y: 0, radius: 0, dx: 0, dy: 0 };
     
-    // Game state
     let player1Score = 0;
     let player2Score = 0;
     let roundNumber = 1;
@@ -35,16 +35,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let player1Selected = false;
     let player2Selected = false;
 
-    // Geschwindigkeit des LANGSAMSTEN Spielers
+    // 60 FPS Lock
+    let lastFrameTime = 0;
+    const FRAME_TIME = 1000 / 60;
+
     function getSlowestPlayerSpeed() {
         const speed1 = playerConfig[selectedPlayer1].pixelsPerFrame;
         const speed2 = playerConfig[selectedPlayer2].pixelsPerFrame;
         return Math.min(speed1, speed2);
     }
-
-    // FIXED 60FPS LOOP
-    let lastFrameTime = 0;
-    const FRAME_TIME = 1000 / 60; // 16.666ms pro Frame
 
     function resizeCanvas() {
         const maxWidth = 600, maxHeight = 400;
@@ -72,19 +71,21 @@ document.addEventListener("DOMContentLoaded", () => {
         paddle1.y = canvas.height / 2 - scaledPaddleHeight / 2;
         paddle2.x = canvas.width - (paddle2Width || 60) - 20 * scaleFactor;
         paddle2.y = canvas.height / 2 - scaledPaddleHeight / 2;
-        
-        ball.radius = scaledBallRadius;
+
+        // Alle Bälle Radius aktualisieren
+        balls.forEach(ball => {
+            ball.radius = scaledBallRadius;
+        });
     }
 
-    // AI für Robo (FIXED Geschwindigkeit)
     function updateAI() {
         if (!playerConfig[selectedPlayer2].isAI && !playerConfig[selectedPlayer1].isAI) return;
         
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
         const aiPaddle = playerConfig[selectedPlayer2].isAI ? paddle2 : paddle1;
-        const targetY = ball.y - scaledPaddleHeight / 2;
+        const targetY = balls[0]?.y ?? canvas.height / 2; // AI folgt Hauptball
         
-        const aiMoveSpeed = 2.5; // FIXED pixels per frame
+        const aiMoveSpeed = 2.5;
         if (aiPaddle.y + scaledPaddleHeight / 2 < targetY) {
             aiPaddle.y += aiMoveSpeed;
         } else if (aiPaddle.y + scaledPaddleHeight / 2 > targetY) {
@@ -146,7 +147,20 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("player2Name").textContent = playerConfig[selectedPlayer2].name;
         document.getElementById("playerSelectOverlay").style.display = "none";
         gameStarted = true;
-        resetBall();
+        setupMainBall();
+    }
+
+    function setupMainBall() {
+        const radius = 10 * scaleFactor;
+        balls = [{
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius,
+            dx: pixelsPerFrame * (Math.random() > 0.5 ? 1 : -1),
+            dy: (pixelsPerFrame * 0.7) * (Math.random() > 0.5 ? 1 : -1),
+            isMain: true
+        }];
+        updateScoreboard();
     }
 
     function handleInput(event) {
@@ -191,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function drawBall() {
+    function drawBall(ball) {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         ctx.fillStyle = "white";
@@ -210,44 +224,79 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.closePath();
     }
 
-    function moveBall() {
-        // **FIXED PIXELS PER FRAME** - KEIN DeltaTime!
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+    function moveBalls() {
         const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+        const isNuggetLeft  = selectedPlayer1 === "nugget";
+        const isNuggetRight = selectedPlayer2 === "nugget";
 
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-            ball.dy *= -1;
-        }
+        balls.forEach((ball, index) => {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
 
-        if (
-            (ball.x - ball.radius < paddle1.x + paddle1Width &&
-             ball.y > paddle1.y &&
-             ball.y < paddle1.y + scaledPaddleHeight) ||
-            (ball.x + ball.radius > paddle2.x &&
-             ball.y > paddle2.y &&
-             ball.y < paddle2.y + scaledPaddleHeight)
-        ) {
-            ball.dx *= -1;
-        }
+            // Wand-Kollision
+            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                ball.dy *= -1;
+            }
 
-        if (ball.x - ball.radius < 0) {
-            player2Score++;
-            resetBall();
-        } else if (ball.x + ball.radius > canvas.width) {
-            player1Score++;
-            resetBall();
-        }
+            // Paddle-Kollision + Nugget-Spezial
+            let hitLeft = false;
+            let hitRight = false;
+
+            if (
+                ball.x - ball.radius < paddle1.x + paddle1Width &&
+                ball.y > paddle1.y &&
+                ball.y < paddle1.y + scaledPaddleHeight
+            ) {
+                ball.dx *= -1;
+                hitLeft = true;
+            }
+
+            if (
+                ball.x + ball.radius > paddle2.x &&
+                ball.y > paddle2.y &&
+                ball.y < paddle2.y + scaledPaddleHeight
+            ) {
+                ball.dx *= -1;
+                hitRight = true;
+            }
+
+            // Nugget-Special: zusätzlicher Ball von unten
+            if (hitLeft && isNuggetLeft) {
+                spawnNuggetBall(paddle1);
+            }
+            if (hitRight && isNuggetRight) {
+                spawnNuggetBall(paddle2);
+            }
+
+            // Scoring nur für Hauptball
+            if (ball.isMain) {
+                if (ball.x - ball.radius < 0) {
+                    player2Score++;
+                    setupMainBall();
+                } else if (ball.x + ball.radius > canvas.width) {
+                    player1Score++;
+                    setupMainBall();
+                }
+            }
+        });
 
         checkWinner();
     }
 
-    function resetBall() {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        ball.dx = pixelsPerFrame * (Math.random() > 0.5 ? 1 : -1);
-        ball.dy = (pixelsPerFrame * 0.7) * (Math.random() > 0.5 ? 1 : -1);
-        updateScoreboard();
+    function spawnNuggetBall(paddle) {
+        const scaledPaddleHeight = PADDLE_HEIGHT * scaleFactor;
+        const radius = 8 * scaleFactor;
+        const x = paddle.isLeft ? paddle.x + paddle1Width / 2 : paddle.x + paddle2Width / 2;
+        const y = paddle.y + scaledPaddleHeight + radius + 2;
+
+        balls.push({
+            x,
+            y,
+            radius,
+            dx: (Math.random() > 0.5 ? 1 : -1) * pixelsPerFrame * 0.8,
+            dy: -pixelsPerFrame, // nach oben schießen
+            isMain: false
+        });
     }
 
     function updateScoreboard() {
@@ -282,18 +331,15 @@ document.addEventListener("DOMContentLoaded", () => {
         player2Score = 0;
         roundNumber++;
         pixelsPerFrame = getSlowestPlayerSpeed() + (roundNumber - 1) * 0.5;
-        updateScoreboard();
         document.getElementById("winnerOverlay").style.display = "none";
         updateGamePositions();
-        resetBall();
+        setupMainBall();
     }
 
     document.getElementById("nextRoundButton").addEventListener("click", startNextRound);
     window.addEventListener('resize', resizeCanvas);
 
-    // **60FPS LOCKED GAME LOOP**
     function gameLoop(timestamp) {
-        // FIXED FRAME TIME - KEIN RAF Timing Problem!
         if (timestamp - lastFrameTime < FRAME_TIME) {
             requestAnimationFrame(gameLoop);
             return;
@@ -309,16 +355,16 @@ document.addEventListener("DOMContentLoaded", () => {
         drawMiddleLine();
         drawPaddle(paddle1, player1Image, paddle1Width);
         drawPaddle(paddle2, player2Image, paddle2Width);
-        drawBall();
+        balls.forEach(drawBall);
         
         if (!gamePaused) {
             updateAI();
-            moveBall();
+            moveBalls();
         }
         requestAnimationFrame(gameLoop);
     }
 
-    // Initialize
+    // Init
     resizeCanvas();
     initPlayerSelect();
     updateScoreboard();
